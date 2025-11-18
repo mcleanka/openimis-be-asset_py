@@ -37,20 +37,23 @@ function Dashboard() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
       <h2>Dashboard</h2>
-      <div>
-        <h3>System Statistics</h3>
-        <ul>
-          <li>Total Assets: {stats.totalAssets}</li>
-          <li>Total Users: {stats.totalUsers}</li>
-          <li>Total Regions: {stats.totalRegions}</li>
-        </ul>
-      </div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div>
+          <h3>System Statistics</h3>
+          <ul>
+            <li>Total Assets: {stats.totalAssets}</li>
+            <li>Total Users: {stats.totalUsers}</li>
+            <li>Total Regions: {stats.totalRegions}</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
