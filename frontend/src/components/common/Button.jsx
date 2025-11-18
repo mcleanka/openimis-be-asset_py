@@ -6,12 +6,14 @@ function Button({
   disabled = false,
   className = "",
 }) {
-  const baseStyles = "font-medium py-2 px-4 rounded-lg transition-colors";
+  const baseStyles = "font-medium py-2.5 px-4 rounded-sm transition-colors";
 
   const variants = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-400",
-    secondary: "bg-slate-200 hover:bg-slate-300 text-slate-900",
-    danger: "bg-red-600 hover:bg-red-700 text-white",
+    primary:
+      "border border-blue-600 bg-white hover:bg-blue-50 text-blue-600 disabled:border-gray-400 disabled:text-gray-400",
+    secondary:
+      "border border-gray-300 bg-white hover:bg-gray-50 text-gray-900 disabled:border-gray-200 disabled:text-gray-300",
+    danger: "border border-red-600 bg-white hover:bg-red-50 text-red-600",
     link: "text-blue-600 hover:text-blue-800",
   };
 

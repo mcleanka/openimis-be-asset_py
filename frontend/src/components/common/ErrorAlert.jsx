@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-/**
- * Enhanced ErrorAlert component with auto-dismiss and retry capability
- */
 function ErrorAlert({
   message,
   onDismiss,

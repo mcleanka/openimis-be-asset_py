@@ -1,11 +1,41 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import Table from "./common/Table";
+import LoadingSpinner from "./common/LoadingSpinner";
+import ErrorAlert from "./common/ErrorAlert";
+import EmptyState from "./common/EmptyState";
+import PageHeader from "./common/PageHeader";
+import Button from "./common/Button";
+import { useAsync } from "../hooks";
+import {
+  AssignAssetModal,
+  UnassignAssetModal,
+  MarkRepairModal,
+  RetireAssetModal,
+} from "./modals/AssetActionModals";
 
 function AssetList({ onCreateNew, onEdit }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const deleteAsset = useCallback(async (id) => {
+    return axios.delete(`/api/assets/${id}/`);
+  }, []);
+
+  const {
+    execute: executeDelete,
+    loading: deleteLoading,
+    error: deleteError,
+  } = useAsync(deleteAsset, false);
+
+  const [modalState, setModalState] = useState({
+    assignAsset: null,
+    unassignAsset: null,
+    repairAsset: null,
+    retireAsset: null,
+  });
 
   useEffect(() => {
     fetchAssets();
@@ -28,60 +58,212 @@ function AssetList({ onCreateNew, onEdit }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this asset?")) {
+  const handleDelete = useCallback(
+    async (id) => {
+      if (!window.confirm("Are you sure you want to delete this asset?")) {
+        return;
+      }
+
       try {
-        await axios.delete(`/api/assets/${id}/`);
+        await executeDelete(id);
         fetchAssets();
       } catch (err) {
-        alert("Failed to delete asset");
         console.error("Error deleting asset:", err);
       }
-    }
+    },
+    [executeDelete]
+  );
+
+  const openAssignModal = (asset) => {
+    setModalState((prev) => ({ ...prev, assignAsset: asset }));
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  const openUnassignModal = (asset) => {
+    setModalState((prev) => ({ ...prev, unassignAsset: asset }));
+  };
+
+  const openRepairModal = (asset) => {
+    setModalState((prev) => ({ ...prev, repairAsset: asset }));
+  };
+
+  const openRetireModal = (asset) => {
+    setModalState((prev) => ({ ...prev, retireAsset: asset }));
+  };
+
+  const closeAllModals = () => {
+    setModalState({
+      assignAsset: null,
+      unassignAsset: null,
+      repairAsset: null,
+      retireAsset: null,
+    });
+  };
+
+  const handleActionSuccess = () => {
+    closeAllModals();
+    refetch();
+  };
+
+  if (loading) return <LoadingSpinner />;
+
+  if (error) return <ErrorAlert message={error} onRetry={retry} />;
 
   return (
     <div>
-      <h2>{assets.length === 0 ? "Asset Management System" : "Assets"}</h2>
-      <button onClick={onCreateNew}>Create New Asset</button>
+      <PageHeader
+        title={assets.length === 0 ? "No Asset Found" : "Assets"}
+        action={
+          <Button onClick={onCreateNew} variant="primary">
+            Create New Asset
+          </Button>
+        }
+      />
 
-      {loading ? (
-        <div>Loading...</div>
+      {assets.length === 0 ? (
+        <EmptyState
+          message="no assets found"
+          icon={
+            <svg
+              className="w-8 h-8 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10l8 4M4 7l8-4m0 0l8 4"
+              />
+            </svg>
+          }
+        />
       ) : (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Serial Number</th>
-              <th>Region</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assets.length === 0 ? (
-              <tr>
-                <td colSpan="4">no assets found</td>{" "}
-              </tr>
-            ) : (
-              assets.map((asset) => (
-                <tr key={asset.id}>
-                  <td>{asset.name}</td>
-                  <td>{asset.serial_number}</td>
-                  <td>{asset.region_name}</td>
-                  <td>
-                    <button onClick={() => onEdit(asset)}>Edit</button>
-                    <button onClick={() => handleDelete(asset.id)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
+        <>
+          <Table
+            columns={[
+              { key: "name", label: "Name", bold: true },
+              { key: "serial_number", label: "Serial Number" },
+              { key: "device_type_name", label: "Device Type" },
+              { key: "region_name", label: "Region" },
+              {
+                key: "status_name",
+                label: "Status",
+                render: (value) => (
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      value === "Available"
+                        ? "bg-green-100 text-green-800"
+                        : value === "Assigned"
+                        ? "bg-blue-100 text-blue-800"
+                        : value === "Repair"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-slate-100 text-slate-800"
+                    }`}
+                  >
+                    {value}
+                  </span>
+                ),
+              },
+            ]}
+            data={assets}
+            actions={(asset) => (
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={() => onEdit(asset)}
+                  variant="link"
+                  type="button"
+                  size="sm"
+                >
+                  Edit
+                </Button>
+                {asset.status_name === "Available" && (
+                  <Button
+                    onClick={() => openAssignModal(asset)}
+                    variant="link"
+                    type="button"
+                    size="sm"
+                    className="text-green-600 hover:text-green-800"
+                  >
+                    Assign
+                  </Button>
+                )}
+                {asset.status_name === "Assigned" && (
+                  <>
+                    <Button
+                      onClick={() => openUnassignModal(asset)}
+                      variant="link"
+                      type="button"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Unassign
+                    </Button>
+                    <Button
+                      onClick={() => openRepairModal(asset)}
+                      variant="link"
+                      type="button"
+                      size="sm"
+                      className="text-yellow-600 hover:text-yellow-800"
+                    >
+                      Repair
+                    </Button>
+                  </>
+                )}
+                {asset.status_name !== "Retired" && (
+                  <Button
+                    onClick={() => openRetireModal(asset)}
+                    variant="link"
+                    type="button"
+                    size="sm"
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    Retire
+                  </Button>
+                )}
+                <Button
+                  onClick={() => handleDelete(asset.id)}
+                  variant="link"
+                  type="button"
+                  size="sm"
+                  disabled={deleteLoading}
+                  className="text-red-700 hover:text-red-900"
+                >
+                  {deleteLoading ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
             )}
-          </tbody>
-        </table>
+          />
+
+          {modalState.assignAsset && (
+            <AssignAssetModal
+              asset={modalState.assignAsset}
+              onClose={closeAllModals}
+              onSuccess={handleActionSuccess}
+            />
+          )}
+          {modalState.unassignAsset && (
+            <UnassignAssetModal
+              asset={modalState.unassignAsset}
+              onClose={closeAllModals}
+              onSuccess={handleActionSuccess}
+            />
+          )}
+          {modalState.repairAsset && (
+            <MarkRepairModal
+              asset={modalState.repairAsset}
+              onClose={closeAllModals}
+              onSuccess={handleActionSuccess}
+            />
+          )}
+          {modalState.retireAsset && (
+            <RetireAssetModal
+              asset={modalState.retireAsset}
+              onClose={closeAllModals}
+              onSuccess={handleActionSuccess}
+            />
+          )}
+        </>
       )}
     </div>
   );

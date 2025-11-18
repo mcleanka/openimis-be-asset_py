@@ -166,7 +166,7 @@ class AssetViewSet(viewsets.ModelViewSet):
             raise ValidationError({'user_id': 'This field is required.'})
 
         try:
-            user = User.objects.get(id=user_id, is_active=True)
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             raise ValidationError({'user_id': 'User not found or inactive.'})
 

@@ -80,7 +80,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="py-8">{renderView()}</main>
+      <main className="py-5">{renderView()}</main>
     </div>
   );
 }

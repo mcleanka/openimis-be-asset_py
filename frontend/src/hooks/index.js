@@ -12,7 +12,6 @@ export function useFetch(url, options = {}) {
     error: null,
   });
 
-  // Stringify options to avoid dependency issues
   const optionsRef = useRef(options);
   const optionsKey = JSON.stringify(options);
 
@@ -39,7 +38,7 @@ export function useFetch(url, options = {}) {
         });
 
         if (shouldThrow) {
-          throw err; // Only throw if explicitly requested
+          throw err;
         }
         return null;
       }
@@ -48,7 +47,7 @@ export function useFetch(url, options = {}) {
   );
 
   useEffect(() => {
-    fetchData(false); // Don't throw on mount
+    fetchData(false);
   }, [fetchData]);
 
   const retry = useCallback(() => {
