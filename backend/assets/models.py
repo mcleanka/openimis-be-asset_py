@@ -114,14 +114,14 @@ class User(models.Model):
     # Compatibility with old and new tests
     role = models.ForeignKey(
         UserRole,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name='users',
         null=True,      # Allows NULL in database
         blank=True      # Allows empty value in serializers
     )
     region = models.ForeignKey(
         Region,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name='users',
         null=True,
         blank=True
@@ -148,17 +148,30 @@ class User(models.Model):
 
         super().save(*args, **kwargs)
 
-    @property
-    def can_delete(self):
-        """
-        Check if user can be safely deleted.
-        """
-        asset_count = self.assigned_assets.count()
+    # @property
+    # def can_delete(self):
+    #     """
+    #     Check if user can be safely deleted.
+    #     """
+    #     asset_count = self.assigned_assets.count()
 
-        if asset_count > 0:
-            return False, f"User has {asset_count} assigned asset(s)", asset_count
+    #     if asset_count > 0:
+    #         return False, f"User has {asset_count} assigned asset(s)", asset_count
 
-        return True, "User can be deleted", 0
+    #     return True, "User can be deleted", 0
+
+    # def delete(self, *args, **kwargs):
+    #     """Override delete to handle business rules"""
+    #     # Check if user has assigned assets
+    #     if self.assigned_assets.exists():
+    #         raise ValidationError(
+    #             f"Cannot delete user '{self.name}' because they have assets assigned. "
+    #             "Unassign all assets first."
+    #         )
+
+    #     # If no assets assigned, proceed with deletion
+    #     # The SET_NULL will handle the role and region fields
+    #     super().delete(*args, **kwargs)
 
 
 class Asset(models.Model):

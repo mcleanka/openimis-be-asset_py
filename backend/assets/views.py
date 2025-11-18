@@ -231,6 +231,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         assigned_assets = Asset.objects.filter(status__code='assigned').count()
         assets_in_repair = Asset.objects.filter(status__code='repair').count()
         retired_assets = Asset.objects.filter(status__code='retired').count()
+        total_regions = Region.objects.count()
 
         assets_by_region = {
             region.name: region.assets.count()
@@ -249,6 +250,7 @@ class AssetViewSet(viewsets.ModelViewSet):
             'assigned_assets': assigned_assets,
             'assets_in_repair': assets_in_repair,
             'retired_assets': retired_assets,
+            'total_regions': total_regions,
             'assets_by_region': assets_by_region,
             'assets_by_type': assets_by_type,
         }

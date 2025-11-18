@@ -246,5 +246,6 @@ class DashboardStatsSerializer(serializers.Serializer):
     assigned_assets = serializers.IntegerField()
     assets_in_repair = serializers.IntegerField()
     retired_assets = serializers.IntegerField()
+    total_regions = serializers.IntegerField()
     assets_by_region = serializers.DictField()
     assets_by_type = serializers.DictField()
