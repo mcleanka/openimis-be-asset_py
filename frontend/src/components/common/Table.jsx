@@ -1,4 +1,8 @@
-function Table({ columns, data, actions }) {
+const getNestedValue = (obj, path) => {
+  return path.split(".").reduce((current, key) => current?.[key], obj);
+};
+
+export default function Table({ columns, data, actions }) {
   return (
     <div className="bg-white rounded-sm border border-gray-200 overflow-hidden">
       <table className="w-full">
@@ -21,17 +25,29 @@ function Table({ columns, data, actions }) {
         </thead>
         <tbody className="divide-y divide-gray-200">
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-50 transition-colors">
-              {columns.map((column) => (
-                <td
-                  key={column.key}
-                  className={`px-6 py-4 text-sm ${
-                    column.bold ? "text-gray-900 font-medium" : "text-gray-600"
-                  }`}
-                >
-                  {row[column.key]}
-                </td>
-              ))}
+            <tr
+              key={row.id || rowIndex}
+              className="hover:bg-gray-50 transition-colors"
+            >
+              {columns.map((column) => {
+                const value = getNestedValue(row, column.key);
+                const displayValue = column.render
+                  ? column.render(value, row)
+                  : value;
+
+                return (
+                  <td
+                    key={column.key}
+                    className={`px-6 py-4 text-sm ${
+                      column.bold
+                        ? "text-gray-900 font-medium"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {displayValue}
+                  </td>
+                );
+              })}
               {actions && (
                 <td className="px-6 py-4 text-sm space-x-3">{actions(row)}</td>
               )}
@@ -42,5 +58,3 @@ function Table({ columns, data, actions }) {
     </div>
   );
 }
-
-export default Table;

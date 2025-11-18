@@ -3,62 +3,108 @@ import Dashboard from "./components/Dashboard";
 import AssetList from "./components/AssetList";
 import AssetForm from "./components/AssetForm";
 import UserList from "./components/UserList";
+import UserForm from "./components/UserForm";
 import RegionList from "./components/RegionList";
+import RegionForm from "./components/RegionForm";
 import NavTab from "./components/common/NavTab";
 
 const VIEWS = {
   DASHBOARD: "dashboard",
-  ASSETS: "assets",
-  ASSET_FORM: "assetForm",
-  USERS: "users",
-  REGIONS: "regions",
 };
+
+const ENTITIES = [
+  {
+    id: "assets",
+    label: "Assets",
+    listView: "assets",
+    formView: "assetForm",
+    ListComponent: AssetList,
+    FormComponent: AssetForm,
+    propName: "asset",
+  },
+  {
+    id: "users",
+    label: "Users",
+    listView: "users",
+    formView: "userForm",
+    ListComponent: UserList,
+    FormComponent: UserForm,
+    propName: "user",
+  },
+  {
+    id: "regions",
+    label: "Regions",
+    listView: "regions",
+    formView: "regionForm",
+    ListComponent: RegionList,
+    FormComponent: RegionForm,
+    propName: "region",
+  },
+];
 
 const NAV_ITEMS = [
   { id: VIEWS.DASHBOARD, label: "Dashboard" },
-  { id: VIEWS.ASSETS, label: "Assets" },
-  { id: VIEWS.USERS, label: "Users" },
-  { id: VIEWS.REGIONS, label: "Regions" },
+  ...ENTITIES.map((entity) => ({ id: entity.listView, label: entity.label })),
 ];
 
 function App() {
-  const [editingAsset, setEditingAsset] = useState(null);
   const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD);
+  const [editingItems, setEditingItems] = useState({});
 
-  const handleCreateNew = () => {
-    setEditingAsset(null);
-    setCurrentView(VIEWS.ASSET_FORM);
+  // Generic handlers that work for any entity
+  const handleCreateNew = (entityConfig) => {
+    setEditingItems((prev) => ({ ...prev, [entityConfig.id]: null }));
+    setCurrentView(entityConfig.formView);
   };
 
-  const handleEdit = (asset) => {
-    setEditingAsset(asset);
-    setCurrentView(VIEWS.ASSET_FORM);
+  const handleEdit = (entityConfig, item) => {
+    setEditingItems((prev) => ({ ...prev, [entityConfig.id]: item }));
+    setCurrentView(entityConfig.formView);
   };
 
-  const handleFormClose = () => {
-    setEditingAsset(null);
-    setCurrentView(VIEWS.ASSETS);
+  const handleFormClose = (entityConfig) => {
+    setEditingItems((prev) => ({ ...prev, [entityConfig.id]: null }));
+    setCurrentView(entityConfig.listView);
   };
 
   const renderView = () => {
-    switch (currentView) {
-      case VIEWS.DASHBOARD:
-        return <Dashboard />;
-      case VIEWS.ASSETS:
-        return <AssetList onCreateNew={handleCreateNew} onEdit={handleEdit} />;
-      case VIEWS.ASSET_FORM:
-        return <AssetForm asset={editingAsset} onClose={handleFormClose} />;
-      case VIEWS.USERS:
-        return <UserList />;
-      case VIEWS.REGIONS:
-        return <RegionList />;
-      default:
-        return <Dashboard />;
+    if (currentView === VIEWS.DASHBOARD) {
+      return <Dashboard />;
     }
+
+    for (const entity of ENTITIES) {
+      if (currentView === entity.listView) {
+        const ListComponent = entity.ListComponent;
+        return (
+          <ListComponent
+            onCreateNew={() => handleCreateNew(entity)}
+            onEdit={(item) => handleEdit(entity, item)}
+          />
+        );
+      }
+
+      if (currentView === entity.formView) {
+        const FormComponent = entity.FormComponent;
+        const props = {
+          [entity.propName]: editingItems[entity.id],
+          onClose: () => handleFormClose(entity),
+        };
+        return <FormComponent {...props} />;
+      }
+    }
+
+    return <Dashboard />;
+  };
+
+  const isActiveTab = (navItemId) => {
+    if (currentView === navItemId) return true;
+
+    const entity = ENTITIES.find((e) => e.listView === navItemId);
+    return entity && currentView === entity.formView;
   };
 
   return (
-    <div className="min-h-screen bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
+    <div className="min-h-screen bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <header className="border-b border-slate-200">
         <div className="py-6">
           <h1 className="text-3xl font-bold text-slate-900 uppercase">
@@ -73,7 +119,7 @@ function App() {
             <NavTab
               key={item.id}
               label={item.label}
-              isActive={currentView === item.id}
+              isActive={isActiveTab(item.id)}
               onClick={() => setCurrentView(item.id)}
             />
           ))}
