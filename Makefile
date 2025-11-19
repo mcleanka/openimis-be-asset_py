@@ -55,9 +55,7 @@ clean:
 
 # Setup complete development environment
 setup: install migrate seed
-	@echo "Development environment ready!"
-	@echo "Backend: http://localhost:8000"
-	@echo "Frontend: http://localhost:5173"
+	@echo "(-_-) Development environment ready!"
 
 help:
 	@echo "Available commands:"
