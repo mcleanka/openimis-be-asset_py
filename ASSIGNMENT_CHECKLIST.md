@@ -1,5 +1,38 @@
 # Asset Management Assignment — Complete Checklist
 
+## Project Setup & Workflow
+
+### **1. Clone and Setup**
+
+```bash
+git clone <your-repo>
+cd asset-manager
+make setup
+```
+
+### **2. Development**
+
+```bash
+make run-backend    # Terminal 1
+make run-frontend   # Terminal 2
+```
+
+### **3. Testing**
+
+```bash
+make test
+```
+
+### **4. Commit Changes**
+
+```bash
+git add .
+git commit -m "feat: your feature"   # Runs pre-commit checks
+git push origin develop
+```
+
+---
+
 ## Core Requirements Checklist
 
 ### 1. Data Models Extension
@@ -188,23 +221,15 @@
 
 ### Development Setup
 
-- [x] `requirements.txt` complete
+- [x] `requirements.txt` and `package.json` complete
 - [x] Database configuration
 - [x] Environment variables
 - [x] Seed data working
 - [x] Development server runs
-- [x] Tech stack documentation
+- [x] New tech stack documentation
   - [x] Django 4.2, Django REST Framework
   - [x] `django-filter==23.5` for backend
   - [x] React 18 with Tailwind CSS for frontend
-  - [x] SQLite database
-- [x] `Makefile` for convenient backend script execution
-  - [x] `make install` — Install dependencies
-  - [x] `make migrate` — Run migrations
-  - [x] `make seed` — Seed database
-  - [x] `make test` — Run tests
-  - [x] `make run` — Start development server
-  - [x] `make clean` — Clean up files
 
 ### Documentation
 
