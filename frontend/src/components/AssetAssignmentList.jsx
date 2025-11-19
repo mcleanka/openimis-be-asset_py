@@ -1,25 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Table from "./common/Table";
 import LoadingSpinner from "./common/LoadingSpinner";
 import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
+import SearchFilter from "./common/SearchFilter";
 import { useFetch } from "../hooks";
 
 function AssetAssignmentList() {
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  let url = "/api/asset-assignments/";
-  if (filter === "active") {
-    url += "?active=true";
-  } else if (filter === "returned") {
-    url += "?active=false";
-  }
+  // Fetch filter options
+  const { data: regions = [] } = useFetch("/api/regions/");
+  const { data: assetStatuses = [] } = useFetch("/api/asset-statuses/");
 
-  const { data: assignments = [], loading, error, retry } = useFetch(url);
+  // Build query string
+  const buildUrl = () => {
+    const params = new URLSearchParams();
+
+    // Add active/inactive filter from tab selection
+    if (filter === "active") {
+      params.append("active", "true");
+    } else if (filter === "returned") {
+      params.append("active", "false");
+    }
+
+    if (search) {
+      params.append("search", search);
+    }
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== "") {
+        params.append(key, value);
+      }
+    });
+
+    const queryString = params.toString();
+    return queryString
+      ? `/api/asset-assignments/?${queryString}`
+      : "/api/asset-assignments/";
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [filter, search, filters]);
+
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(buildUrl());
+      setAssignments(response.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load asset assignments");
+      console.error("Error fetching assignments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorAlert message={error} onRetry={retry} />;
+  if (error) return <ErrorAlert message={error} onRetry={fetchAssignments} />;
+
+  const filterOptions = {
+    assignment_region: regions,
+    assignment_status: assetStatuses,
+  };
 
   return (
     <div>
@@ -46,6 +98,15 @@ function AssetAssignmentList() {
             ))}
           </nav>
         }
+      />
+
+      <SearchFilter
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        onFilterChange={setFilters}
+        filterOptions={filterOptions}
+        placeholder="Search by asset name, serial number, or user..."
       />
 
       {assignments.length === 0 ? (

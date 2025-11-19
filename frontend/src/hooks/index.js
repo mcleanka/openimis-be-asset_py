@@ -180,3 +180,51 @@ export function useForm(initialValues, onSubmit) {
     isSubmitting,
   };
 }
+
+/**
+ * Custom hook for managing search and filter state
+ * Handles building query parameters for API calls
+ */
+export function useSearchAndFilter(baseUrl) {
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+
+  const buildUrl = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (search) {
+      params.append("search", search);
+    }
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== "") {
+        params.append(key, value);
+      }
+    });
+
+    const queryString = params.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  }, [baseUrl, search, filters]);
+
+  const handleSearchChange = useCallback((value) => {
+    setSearch(value);
+  }, []);
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setFilters({});
+  }, []);
+
+  return {
+    search,
+    filters,
+    url: buildUrl(),
+    setSearch: handleSearchChange,
+    setFilters: handleFilterChange,
+    clearFilters,
+  };
+}

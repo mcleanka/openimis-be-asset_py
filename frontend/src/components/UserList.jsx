@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import axios from "axios";
 import Table from "./common/Table";
 import LoadingSpinner from "./common/LoadingSpinner";
@@ -6,16 +6,18 @@ import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
 import Button from "./common/Button";
+import SearchFilter from "./common/SearchFilter";
 import { useAsync, useFetch } from "../hooks";
 
 function UserList({ onCreateNew, onEdit }) {
-  // Use useFetch for fetching users
-  const {
-    data: users,
-    loading,
-    error,
-    refetch: fetchUsers,
-  } = useFetch("/api/users/");
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const { data: regions = [] } = useFetch("/api/regions/");
+  const { data: roles = [] } = useFetch("/api/user-roles/");
 
   const deleteUser = useCallback(async (id) => {
     return axios.delete(`/api/users/${id}/`);
@@ -26,6 +28,41 @@ function UserList({ onCreateNew, onEdit }) {
     loading: deleteLoading,
     error: deleteError,
   } = useAsync(deleteUser, false);
+
+  const buildUrl = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (search) {
+      params.append("search", search);
+    }
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== "") {
+        params.append(key, value);
+      }
+    });
+
+    const queryString = params.toString();
+    return queryString ? `/api/users/?${queryString}` : "/api/users/";
+  }, [search, filters]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [search, filters]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(buildUrl());
+      setUsers(response.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load users");
+      console.error("Error fetching users:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = useCallback(
     async (id) => {
@@ -40,7 +77,7 @@ function UserList({ onCreateNew, onEdit }) {
 
       try {
         await executeDelete(id);
-        fetchUsers(); // Refetch the list after deletion
+        fetchUsers();
       } catch (err) {
         console.error("Error deleting user:", err);
         if (err.response?.data?.detail) {
@@ -56,6 +93,10 @@ function UserList({ onCreateNew, onEdit }) {
   if (error) return <ErrorAlert message={error} onRetry={fetchUsers} />;
 
   const userList = users || [];
+  const filterOptions = {
+    region: regions,
+    role: roles,
+  };
 
   return (
     <div>
@@ -66,6 +107,15 @@ function UserList({ onCreateNew, onEdit }) {
             Create New User
           </Button>
         }
+      />
+
+      <SearchFilter
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        onFilterChange={setFilters}
+        filterOptions={filterOptions}
+        placeholder="Search by name or email..."
       />
 
       {userList.length === 0 ? (

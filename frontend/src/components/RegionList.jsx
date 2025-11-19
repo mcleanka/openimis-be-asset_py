@@ -6,10 +6,12 @@ import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
 import Button from "./common/Button";
+import SearchFilter from "./common/SearchFilter";
 import { useFetch, useAsync } from "../hooks";
 
 function RegionList({ onCreateNew, onEdit }) {
   const [deleteError, setDeleteError] = useState(null);
+  const [search, setSearch] = useState("");
 
   const {
     data: regions = [],
@@ -17,7 +19,7 @@ function RegionList({ onCreateNew, onEdit }) {
     error,
     retry,
     refetch,
-  } = useFetch("/api/regions/");
+  } = useFetch(search ? `/api/regions/?search=${search}` : "/api/regions/");
 
   const deleteRegion = useCallback(async (id) => {
     return axios.delete(`/api/regions/${id}/`);
@@ -68,6 +70,15 @@ function RegionList({ onCreateNew, onEdit }) {
             Create New Region
           </Button>
         }
+      />
+
+      <SearchFilter
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={{}}
+        onFilterChange={() => {}}
+        filterOptions={{}}
+        placeholder="Search by region name..."
       />
 
       {regions.length === 0 ? (

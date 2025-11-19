@@ -6,7 +6,8 @@ import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
 import Button from "./common/Button";
-import { useAsync } from "../hooks";
+import SearchFilter from "./common/SearchFilter";
+import { useAsync, useFetch } from "../hooks";
 import {
   AssignAssetModal,
   UnassignAssetModal,
@@ -19,6 +20,13 @@ function AssetList({ onCreateNew, onEdit }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+
+  // Fetch filter options
+  const { data: regions = [] } = useFetch("/api/regions/");
+  const { data: deviceTypes = [] } = useFetch("/api/device-types/");
+  const { data: assetStatuses = [] } = useFetch("/api/asset-statuses/");
 
   const deleteAsset = useCallback(async (id) => {
     return axios.delete(`/api/assets/${id}/`);
@@ -37,16 +45,34 @@ function AssetList({ onCreateNew, onEdit }) {
     retireAsset: null,
   });
 
+  // Build query string based on search and filters
+  const buildUrl = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (search) {
+      params.append("search", search);
+    }
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== "") {
+        params.append(key, value);
+      }
+    });
+
+    const queryString = params.toString();
+    return queryString ? `/api/assets/?${queryString}` : "/api/assets/";
+  }, [search, filters]);
+
   useEffect(() => {
     fetchAssets();
-  }, []);
+  }, [search, filters]);
 
   const fetchAssets = async () => {
     try {
       if (!isInitialLoad) {
         setLoading(true);
       }
-      const response = await axios.get("/api/assets/");
+      const response = await axios.get(buildUrl());
       setAssets(response.data);
       setError(null);
     } catch (err) {
@@ -108,6 +134,12 @@ function AssetList({ onCreateNew, onEdit }) {
 
   if (error) return <ErrorAlert message={error} onRetry={fetchAssets} />;
 
+  const filterOptions = {
+    region: regions,
+    device_type: deviceTypes,
+    status: assetStatuses,
+  };
+
   return (
     <div>
       <PageHeader
@@ -117,6 +149,15 @@ function AssetList({ onCreateNew, onEdit }) {
             Create New Asset
           </Button>
         }
+      />
+
+      <SearchFilter
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        onFilterChange={setFilters}
+        filterOptions={filterOptions}
+        placeholder="Search by asset name or serial number..."
       />
 
       {assets.length === 0 ? (
