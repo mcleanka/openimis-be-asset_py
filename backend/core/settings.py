@@ -185,9 +185,3 @@ LOGGING = {
         },
     },
 }
-
-# Custom settings for our application
-ASSET_MANAGER = {
-    'MAX_ASSETS_PER_USER': 2,  # Business rule from assignment
-    'DEFAULT_PAGINATION': 20,
-}
