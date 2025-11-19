@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Region, User, Asset, DeviceType, AssetStatus, UserRole, AssetAssignment
-from django.utils import timezone
 
 
 class ChoiceField(serializers.SlugRelatedField):
@@ -217,20 +216,55 @@ class AssetSerializer(AssetDetailSerializer):
 
 
 class AssetAssignmentSerializer(serializers.ModelSerializer):
-    """Serializer for assignment history"""
     asset_name = serializers.CharField(source='asset.name', read_only=True)
+    asset_serial_number = serializers.CharField(
+        source='asset.serial_number', read_only=True)
     assigned_to_name = serializers.CharField(
         source='assigned_to.name', read_only=True)
-    assigned_by_name = serializers.CharField(
-        source='assigned_by.name', read_only=True)
+    assigned_to_email = serializers.CharField(
+        source='assigned_to.email', read_only=True)
+    assignment_region_name = serializers.CharField(
+        source='assignment_region.name', read_only=True)
+    assignment_status_name = serializers.CharField(
+        source='assignment_status.name', read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+    duration_days = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = AssetAssignment
         fields = [
-            'id', 'asset', 'asset_name', 'assigned_to', 'assigned_to_name',
-            'assigned_by', 'assigned_by_name', 'assigned_date', 'returned_date', 'notes'
+            'id',
+            'asset', 'asset_name', 'asset_serial_number',
+            'assigned_to', 'assigned_to_name', 'assigned_to_email',
+            'assigned_date', 'returned_date', 'notes',
+            'assignment_status', 'assignment_status_name',
+            'assignment_region', 'assignment_region_name',
+            'is_active', 'duration_days',
         ]
-        read_only_fields = ['id', 'assigned_date']
+        read_only_fields = fields
+
+
+class AssetAssignmentListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for list views"""
+    asset_name = serializers.CharField(source='asset.name', read_only=True)
+    asset_serial_number = serializers.CharField(
+        source='asset.serial_number', read_only=True)
+    assigned_to_name = serializers.CharField(
+        source='assigned_to.name', read_only=True)
+    assignment_status_name = serializers.CharField(
+        source='assignment_status.name', read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = AssetAssignment
+        fields = [
+            'id',
+            'asset_name', 'asset_serial_number',
+            'assigned_to_name',
+            'assigned_date', 'returned_date',
+            'assignment_status_name',
+            'is_active',
+        ]
 
 
 class DashboardStatsSerializer(serializers.Serializer):

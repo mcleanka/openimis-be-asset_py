@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 
@@ -169,8 +170,6 @@ class User(models.Model):
                 "Unassign all assets first."
             )
 
-        # If no assets assigned, proceed with deletion
-        # The SET_NULL will handle the role and region fields
         super().delete(*args, **kwargs)
 
 
@@ -233,14 +232,11 @@ class Asset(models.Model):
         super().save(*args, **kwargs)
 
     def _get_status_by_code(self, code):
-        """Helper to get status by code with caching"""
-        if not hasattr(self, '_status_cache'):
-            self._status_cache = {}
-
-        if code not in self._status_cache:
-            self._status_cache[code] = AssetStatus.objects.get(code=code)
-
-        return self._status_cache[code]
+        """Helper to get status by code"""
+        try:
+            return AssetStatus.objects.get(code=code)
+        except AssetStatus.DoesNotExist:
+            return None
 
     def _validate_assignment_rules(self):
         """Core validation logic for asset assignment"""
@@ -274,37 +270,93 @@ class Asset(models.Model):
         if user.region != self.region:
             raise ValidationError("User must be in the same region as asset.")
 
-    def assign_to_user(self, user):
-        """Business method to assign asset to user"""
+    def assign_to_user(self, user, notes=""):
+        """Business method to assign asset to user with audit trail"""
+        assigned_status = self._get_status_by_code('assigned')
+        if not assigned_status:
+            raise ValidationError("Assigned status not found")
+
         self.validate_for_assignment(user)
 
+        # Create assignment record - use the assigned user as assigned_by for simplicity
+        AssetAssignment.objects.create(
+            asset=self,
+            assigned_to=user,
+            assigned_by=user,
+            notes=notes,
+            assignment_region=self.region,
+            assignment_status=assigned_status
+        )
+
         self.assigned_to = user
-        self.status = self._get_status_by_code('assigned')
+        self.status = assigned_status
         self.save()
 
-    def unassign(self):
-        """Business method to unassign asset"""
-        if not self.is_assigned:
+    def unassign(self, notes=""):
+        """Business method to unassign asset with audit trail"""
+        available_status = self._get_status_by_code('available')
+        if not available_status:
+            raise ValidationError("Available status not found")
+
+        if self.status.code != 'assigned':
             raise ValidationError("Only assigned assets can be unassigned.")
 
+        # Mark the active assignment as returned
+        active_assignment = self.assignment_history.filter(
+            returned_date__isnull=True
+        ).first()
+
+        if active_assignment:
+            active_assignment.returned_date = timezone.now()
+            if notes:
+                active_assignment.notes = notes
+            active_assignment.save()
+
         self.assigned_to = None
-        self.status = self._get_status_by_code('available')
+        self.status = available_status
         self.save()
 
-    def _change_status(self, new_status_code, clear_assignment=False):
-        if clear_assignment and self.assigned_to:
-            self.assigned_to = None
+    def mark_for_repair(self, notes=""):
+        """Mark asset for repair with assignment history tracking"""
+        repair_status = self._get_status_by_code('repair')
+        if not repair_status:
+            raise ValidationError("Repair status not found")
 
-        self.status = self._get_status_by_code(new_status_code)
+        # If asset was assigned, mark the assignment as returned
+        if self.status.code == 'assigned':
+            active_assignment = self.assignment_history.filter(
+                returned_date__isnull=True
+            ).first()
+
+            if active_assignment:
+                active_assignment.returned_date = timezone.now()
+                active_assignment.notes = f"Sent for repair: {notes}"
+                active_assignment.save()
+
+        self.assigned_to = None
+        self.status = repair_status
         self.save()
 
-    def mark_for_repair(self):
-        """Mark asset for repair"""
-        self._change_status('repair', clear_assignment=True)
+    def retire(self, notes=""):
+        """Business method to retire asset with assignment history tracking"""
+        retired_status = self._get_status_by_code('retired')
+        if not retired_status:
+            raise ValidationError("Retired status not found")
 
-    def retire(self):
-        """Business method to retire asset"""
-        self._change_status('retired', clear_assignment=True)
+        # If asset was assigned, mark the assignment as returned
+        if self.status.code == 'assigned':
+            active_assignment = self.assignment_history.filter(
+                returned_date__isnull=True
+            ).first()
+
+            if active_assignment:
+                active_assignment.returned_date = timezone.now()
+                active_assignment.notes = f"Asset retired: {notes}"
+                active_assignment.save()
+
+        self.assigned_to = None
+        self.status = retired_status
+        self.save()
 
     @property
     def is_available(self):
@@ -319,15 +371,65 @@ class AssetAssignment(models.Model):
     """Track assignment history for audit trail"""
     asset = models.ForeignKey(
         Asset, on_delete=models.CASCADE, related_name='assignment_history')
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='assignment_records'
+    )
     assigned_by = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name='assignments_made')
+        User,
+        on_delete=models.PROTECT,
+        related_name='assignments_made'
+    )
     assigned_date = models.DateTimeField(auto_now_add=True)
     returned_date = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
 
+    assignment_status = models.ForeignKey(
+        AssetStatus,
+        on_delete=models.PROTECT,
+        related_name='assignment_records',
+        null=True,
+        blank=True
+    )
+    assignment_region = models.ForeignKey(
+        Region,
+        on_delete=models.PROTECT,
+        related_name='assignment_records',
+        null=True,
+        blank=True
+    )
+
     class Meta:
         ordering = ['-assigned_date']
+        db_table = 'asset_assignments'
 
     def __str__(self):
-        return f"{self.asset} assigned to {self.assigned_to} on {self.assigned_date}"
+        status = "Active" if not self.returned_date else "Returned"
+        return f"{self.asset} → {self.assigned_to} ({status})"
+
+    def save(self, *args, **kwargs):
+        """Auto-populate assignment_region and assignment_status if not set"""
+        if not self.assignment_region and self.asset:
+            self.assignment_region = self.asset.region
+        if not self.assignment_status and self.asset:
+            self.assignment_status = self.asset.status
+        super().save(*args, **kwargs)
+
+    @property
+    def is_active(self):
+        return self.returned_date is None
+
+    @property
+    def duration_days(self):
+        if not self.assigned_date:
+            return 0
+        end_date = self.returned_date or timezone.now()
+        return (end_date - self.assigned_date).days
+
+    def mark_returned(self, notes=""):
+        if not self.returned_date:
+            self.returned_date = timezone.now()
+            if notes:
+                self.notes = notes
+            self.save()

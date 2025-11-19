@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .views import (
     RegionViewSet, UserViewSet, AssetViewSet,
-    DeviceTypeViewSet, AssetStatusViewSet, UserRoleViewSet
+    DeviceTypeViewSet, AssetStatusViewSet, UserRoleViewSet,
+    AssetAssignmentViewSet
 )
 
 if settings.DEBUG:
@@ -19,7 +20,8 @@ router.register('assets', AssetViewSet)
 router.register('device-types', DeviceTypeViewSet, basename='devicetype')
 router.register('asset-statuses', AssetStatusViewSet, basename='assetstatus')
 router.register('user-roles', UserRoleViewSet, basename='userrole')
-
+router.register('asset-assignments', AssetAssignmentViewSet,
+                basename='asset-assignment')
 
 urlpatterns = [
     path('', include(router.urls)),

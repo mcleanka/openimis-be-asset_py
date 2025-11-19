@@ -6,11 +6,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Count
 
-from .models import Region, User, Asset, DeviceType, AssetStatus, UserRole
+from .models import Region, User, Asset, DeviceType, AssetStatus, UserRole, AssetAssignment
 from .serializers import (
     RegionSerializer, UserSerializer, AssetSerializer, AssetListSerializer,
-    AssetDetailSerializer, DashboardStatsSerializer,
-    DeviceTypeSerializer, AssetStatusSerializer, UserRoleSerializer
+    AssetDetailSerializer, DashboardStatsSerializer, AssetAssignmentSerializer,
+    DeviceTypeSerializer, AssetStatusSerializer, UserRoleSerializer, AssetAssignmentListSerializer
 )
 
 
@@ -158,8 +158,10 @@ class AssetViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):
+        """Assign asset to a user with business logic and automatic audit trail"""
         asset = self.get_object()
         user_id = request.data.get('user_id')
+        notes = request.data.get('notes', '')
 
         if not user_id:
             raise ValidationError({'user_id': 'This field is required.'})
@@ -167,55 +169,62 @@ class AssetViewSet(viewsets.ModelViewSet):
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            raise ValidationError({'user_id': 'User not found or inactive.'})
+            raise ValidationError({'user_id': 'User not found.'})
 
         try:
-            asset.assign_to_user(user)
+            asset.assign_to_user(user, notes)
             return Response({
-                'detail': f'Asset {asset.name} assigned to {user.name}',
-                'asset': AssetSerializer(asset).data
+                'success': True,
+                'data': AssetSerializer(asset).data,
+                'message': f'Asset {asset.name} assigned to {user.name}'
             })
         except ValidationError as e:
             raise ValidationError({'detail': str(e)})
 
     @action(detail=True, methods=['post'])
     def unassign(self, request, pk=None):
-        """Unassign asset from current user"""
+        """Unassign asset from current user with automatic audit trail"""
         asset = self.get_object()
+        notes = request.data.get('notes', '')
 
         try:
-            asset.unassign()
+            asset.unassign(notes)
             return Response({
-                'detail': f'Asset {asset.name} unassigned',
-                'asset': AssetSerializer(asset).data
+                'success': True,
+                'data': AssetSerializer(asset).data,
+                'message': f'Asset {asset.name} unassigned'
             })
         except ValidationError as e:
             raise ValidationError({'detail': str(e)})
 
     @action(detail=True, methods=['post'])
     def mark_repair(self, request, pk=None):
-        """Mark asset for repair"""
+        """Mark asset for repair with automatic audit trail"""
         asset = self.get_object()
+        notes = request.data.get('notes', '')
 
         try:
-            asset.mark_for_repair()
+            asset.mark_for_repair(notes)
             return Response({
-                'detail': f'Asset {asset.name} marked for repair',
-                'asset': AssetSerializer(asset).data
+                'success': True,
+                'data': AssetSerializer(asset).data,
+                'message': f'Asset {asset.name} marked for repair'
             })
         except ValidationError as e:
             raise ValidationError({'detail': str(e)})
 
     @action(detail=True, methods=['post'])
     def retire(self, request, pk=None):
-        """Retire asset"""
+        """Retire asset with automatic audit trail"""
         asset = self.get_object()
+        notes = request.data.get('notes', '')
 
         try:
-            asset.retire()
+            asset.retire(notes)
             return Response({
-                'detail': f'Asset {asset.name} retired',
-                'asset': AssetSerializer(asset).data
+                'success': True,
+                'data': AssetSerializer(asset).data,
+                'message': f'Asset {asset.name} retired'
             })
         except ValidationError as e:
             raise ValidationError({'detail': str(e)})
@@ -256,6 +265,82 @@ class AssetViewSet(viewsets.ModelViewSet):
 
         serializer = DashboardStatsSerializer(data)
         return Response(serializer.data)
+
+
+class AssetAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Read-only ViewSet for viewing asset assignment history.
+    """
+    queryset = AssetAssignment.objects.select_related(
+        'asset',
+        'assigned_to',
+        'assignment_status',
+        'assignment_region'
+    ).all()
+    serializer_class = AssetAssignmentSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = [
+        'asset',
+        'assigned_to',
+        'assignment_status',
+        'assignment_region',
+        'returned_date',
+    ]
+    search_fields = [
+        'asset__name',
+        'asset__serial_number',
+        'assigned_to__name',
+        'assigned_to__email',
+    ]
+    ordering_fields = [
+        'assigned_date',
+        'returned_date',
+        'asset__name',
+        'assigned_to__name',
+    ]
+    ordering = ['-assigned_date']
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AssetAssignmentListSerializer
+        return AssetAssignmentSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        active = self.request.query_params.get('active')
+        if active == 'true':
+            queryset = queryset.filter(returned_date__isnull=True)
+        elif active == 'false':
+            queryset = queryset.filter(returned_date__isnull=False)
+
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            queryset = queryset.filter(assigned_to_id=user_id)
+
+        asset_id = self.request.query_params.get('asset_id')
+        if asset_id:
+            queryset = queryset.filter(asset_id=asset_id)
+
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def current_assignments(self, request):
+        """Get all currently active assignments"""
+        active_assignments = self.get_queryset().filter(returned_date__isnull=True)
+        page = self.paginate_queryset(active_assignments)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(active_assignments, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data,
+            'count': len(serializer.data),
+            'message': 'Current assignments retrieved successfully'
+        })
 
 
 class DeviceTypeViewSet(viewsets.ReadOnlyModelViewSet):

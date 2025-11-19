@@ -260,3 +260,15 @@ class AssetStatusTests(TestCase):
         status_obj = AssetStatus.objects.create(
             name="Decommissioned", code="decommissioned")
         self.assertEqual(str(status_obj), "Decommissioned")
+
+
+class AssetAssignmentTests(APITestCase):
+    def setUp(self):
+        self.region = Region.objects.create(name="Test Region")
+        self.user = User.objects.create(
+            name="Test User", email="testuser@example.com")
+        self.asset = Asset.objects.create(
+            name="Test Asset",
+            serial_number="TEST001",
+            region=self.region
+        )
