@@ -18,7 +18,6 @@ function SearchFilter({
     setLocalSearchValue(searchValue);
   }, [searchValue]);
 
-  // Auto-focus the search input on component mount
   useEffect(() => {
     if (searchInputRef.current) {
       searchInputRef.current.focus();
