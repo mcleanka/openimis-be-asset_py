@@ -67,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering_fields = ['name', 'email', 'created_at']
     ordering = ['name']
 
-    def get_query(self):
+    def get_queryset(self):
         queryset = self.queryset
         return queryset
 
@@ -91,15 +91,23 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = AssetListSerializer(assets, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='by-region')
     def by_region(self, request):
-        """Get users grouped by region"""
-        regions = Region.objects.prefetch_related('users').all()
-        data = {}
-        for region in regions:
+        """Get users for a specific region by region name"""
+        region_name = request.query_params.get('region_name')
+
+        if not region_name:
+            raise ValidationError(
+                {'region_name': 'This parameter is required.'})
+
+        try:
+            region = Region.objects.get(name__iexact=region_name)
             users = region.users.all()
-            data[region.name] = UserSerializer(users, many=True).data
-        return Response(data)
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data)
+        except Region.DoesNotExist:
+            raise ValidationError(
+                {'region_name': f'Region "{region_name}" not found.'})
 
 
 class AssetViewSet(viewsets.ModelViewSet):

@@ -15,7 +15,7 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
     data: users = [],
     loading,
     error,
-  } = useFetch("/api/users/by-region/?", {
+  } = useFetch("/api/users/by-region", {
     params: { region_name: asset.region_name },
   });
 

@@ -39,7 +39,7 @@ urlpatterns = [
     # User custom actions
     path('users/<int:pk>/assigned-assets/',
          UserViewSet.as_view({'get': 'assigned_assets'}), name='user-assigned-assets'),
-    path('users/by-region/',
+    path('users/by-region',
          UserViewSet.as_view({'get': 'by_region'}), name='users-by-region'),
 
     # Region custom actions
