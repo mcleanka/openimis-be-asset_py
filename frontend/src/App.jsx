@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Dashboard from "./components/Dashboard";
 import AssetList from "./components/AssetList";
 import AssetForm from "./components/AssetForm";
@@ -6,7 +5,10 @@ import UserList from "./components/UserList";
 import UserForm from "./components/UserForm";
 import RegionList from "./components/RegionList";
 import RegionForm from "./components/RegionForm";
+import AssetAssignmentList from "./components/AssetAssignmentList";
 import NavTab from "./components/common/NavTab";
+import Clock from "./components/common/Clock";
+import { useState } from "react";
 
 const VIEWS = {
   DASHBOARD: "dashboard",
@@ -42,16 +44,25 @@ const ENTITIES = [
   },
 ];
 
+const LIST_ONLY_VIEWS = [
+  {
+    id: "assignments",
+    label: "Asset Assignments",
+    view: "assetAssignments",
+    Component: AssetAssignmentList,
+  },
+];
+
 const NAV_ITEMS = [
   { id: VIEWS.DASHBOARD, label: "Dashboard" },
   ...ENTITIES.map((entity) => ({ id: entity.listView, label: entity.label })),
+  ...LIST_ONLY_VIEWS.map((view) => ({ id: view.view, label: view.label })),
 ];
 
 function App() {
   const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD);
   const [editingItems, setEditingItems] = useState({});
 
-  // Generic handlers that work for any entity
   const handleCreateNew = (entityConfig) => {
     setEditingItems((prev) => ({ ...prev, [entityConfig.id]: null }));
     setCurrentView(entityConfig.formView);
@@ -70,6 +81,13 @@ function App() {
   const renderView = () => {
     if (currentView === VIEWS.DASHBOARD) {
       return <Dashboard />;
+    }
+
+    for (const listView of LIST_ONLY_VIEWS) {
+      if (currentView === listView.view) {
+        const Component = listView.Component;
+        return <Component />;
+      }
     }
 
     for (const entity of ENTITIES) {
@@ -106,10 +124,11 @@ function App() {
   return (
     <div className="min-h-screen bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <header className="border-b border-slate-200">
-        <div className="py-6">
-          <h1 className="text-3xl font-bold text-slate-900 uppercase">
+        <div className="py-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-slate-900 uppercase flex-1">
             Asset Management System
           </h1>
+          <Clock />
         </div>
       </header>
 
