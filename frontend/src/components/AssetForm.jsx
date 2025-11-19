@@ -143,7 +143,7 @@ function AssetForm({ asset, onClose }) {
     regionsLoading || deviceTypesLoading || statusesLoading || usersLoading;
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-2xl">
       {submitState.error && (
         <ErrorAlert
           message={submitState.error}
@@ -160,84 +160,80 @@ function AssetForm({ asset, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <FormField
-                label="Asset Name"
-                name="name"
-                value={values.name}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter asset name"
-                required
-                error={errors.name}
-                touched={touched.name}
-              />
+          <div className="space-y-4">
+            <FormField
+              label="Asset Name"
+              name="name"
+              value={values.name}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="Enter asset name"
+              required
+              error={errors.name}
+              touched={touched.name}
+            />
 
-              <FormField
-                label="Serial Number"
-                name="serial_number"
-                value={values.serial_number}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter serial number"
-                required
-                error={errors.serial_number}
-                touched={touched.serial_number}
-              />
+            <FormField
+              label="Serial Number"
+              name="serial_number"
+              value={values.serial_number}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="Enter serial number"
+              required
+              error={errors.serial_number}
+              touched={touched.serial_number}
+            />
 
-              <FormField
-                label="Device Type"
-                name="device_type"
-                type="select"
-                value={values.device_type}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={deviceTypes || []}
-                required
-                error={errors.device_type}
-                touched={touched.device_type}
-                loading={deviceTypesLoading}
-              />
+            <FormField
+              label="Device Type"
+              name="device_type"
+              type="select"
+              value={values.device_type}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              options={deviceTypes || []}
+              required
+              error={errors.device_type}
+              touched={touched.device_type}
+              loading={deviceTypesLoading}
+            />
 
-              <FormField
-                label="Status"
-                name="status"
-                type="select"
-                value={values.status}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={assetStatuses || []}
-                required
-                error={errors.status}
-                touched={touched.status}
-                loading={statusesLoading}
-              />
-            </div>
+            <FormField
+              label="Status"
+              name="status"
+              type="select"
+              value={values.status}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              options={assetStatuses || []}
+              required
+              error={errors.status}
+              touched={touched.status}
+              loading={statusesLoading}
+            />
 
-            <div className="space-y-4">
-              <FormField
-                label="Region"
-                name="region"
-                type="select"
-                value={values.region}
-                onChange={handleRegionChange}
-                onBlur={handleBlur}
-                options={regions || []}
-                required
-                error={errors.region}
-                touched={touched.region}
-                loading={regionsLoading}
-              />
+            <FormField
+              label="Region"
+              name="region"
+              type="select"
+              value={values.region}
+              onChange={handleRegionChange}
+              onBlur={handleBlur}
+              options={regions || []}
+              required
+              error={errors.region}
+              touched={touched.region}
+              loading={regionsLoading}
+            />
 
-              {values.region && (
-                <p className="text-sm text-gray-500">
-                  {filteredUsers.length === 0
-                    ? "No users available in this region"
-                    : ""}
-                </p>
-              )}
-            </div>
+            {values.region && (
+              <p className="text-sm text-gray-500">
+                {filteredUsers.length === 0
+                  ? "No users available in this region"
+                  : ""}
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200">

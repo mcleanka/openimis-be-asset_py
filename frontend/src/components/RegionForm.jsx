@@ -88,7 +88,7 @@ function RegionForm({ region, onClose }) {
   };
 
   return (
-    <div className="max-w-md">
+    <div className="max-w-2xl">
       <h2 className="text-2xl font-bold text-slate-900 mb-8">
         {region ? "Edit Region" : "Create New Region"}
       </h2>
@@ -119,7 +119,7 @@ function RegionForm({ region, onClose }) {
           />
         </div>
 
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200">
           <Button
             type="submit"
             disabled={submitState.loading}

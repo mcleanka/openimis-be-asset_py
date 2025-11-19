@@ -167,7 +167,7 @@ function UserForm({ user, onClose }) {
           />
         </div>
 
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200">
           <Button
             type="submit"
             disabled={submitState.loading || isLoading}
