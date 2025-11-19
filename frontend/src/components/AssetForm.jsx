@@ -234,6 +234,7 @@ function AssetForm({ asset, onClose }) {
                 label="Assigned To"
                 name="assigned_to"
                 type="select"
+                required={false}
                 value={values.assigned_to}
                 onChange={handleChange}
                 onBlur={handleBlur}

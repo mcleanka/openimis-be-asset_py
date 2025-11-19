@@ -6,7 +6,8 @@ function Button({
   disabled = false,
   className = "",
 }) {
-  const baseStyles = "font-medium py-2.5 px-4 rounded-sm transition-colors";
+  const baseStyles =
+    "font-medium py-2.5 px-4 rounded-sm transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed";
 
   const variants = {
     primary:

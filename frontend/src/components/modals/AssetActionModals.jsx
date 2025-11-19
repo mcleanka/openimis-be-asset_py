@@ -24,7 +24,7 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
       const response = await axios.get("/api/users/");
       setUsers(response.data || []);
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to load users");
+      setError(err.response?.data?.error?.details || "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
       onSuccess?.(response.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to assign asset");
+      setError(err.response?.data?.error?.details || "Failed to assign asset");
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +161,9 @@ export function UnassignAssetModal({ asset, onClose, onSuccess }) {
       onSuccess?.(response.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to unassign asset");
+      setError(
+        err.response?.data?.error?.details || "Failed to unassign asset"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -290,7 +292,9 @@ export function MarkRepairModal({ asset, onClose, onSuccess }) {
       onSuccess?.(response.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to mark asset for repair");
+      setError(
+        err.response?.data?.error?.details || "Failed to mark asset for repair"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -415,7 +419,7 @@ export function RetireAssetModal({ asset, onClose, onSuccess }) {
       onSuccess?.(response.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to retire asset");
+      setError(err.response?.data?.error?.details || "Failed to retire asset");
     } finally {
       setSubmitting(false);
     }
