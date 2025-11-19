@@ -54,7 +54,7 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="fixed inset-0 bg-slate-50/60 opacity-100 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
       <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -170,7 +170,7 @@ export function UnassignAssetModal({ asset, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black opacity-70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
       <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -301,7 +301,7 @@ export function MarkRepairModal({ asset, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black opacity-70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
       <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -426,7 +426,7 @@ export function RetireAssetModal({ asset, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-50/60 opacity-100 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
       <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">

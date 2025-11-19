@@ -101,12 +101,12 @@ function AssetList({ onCreateNew, onEdit }) {
 
   const handleActionSuccess = () => {
     closeAllModals();
-    refetch();
+    fetchAssets();
   };
 
   if (loading) return <LoadingSpinner />;
 
-  if (error) return <ErrorAlert message={error} onRetry={retry} />;
+  if (error) return <ErrorAlert message={error} onRetry={fetchAssets} />;
 
   return (
     <div>
@@ -120,24 +120,7 @@ function AssetList({ onCreateNew, onEdit }) {
       />
 
       {assets.length === 0 ? (
-        <EmptyState
-          message="no assets found"
-          icon={
-            <svg
-              className="w-8 h-8 text-slate-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10l8 4M4 7l8-4m0 0l8 4"
-              />
-            </svg>
-          }
-        />
+        <EmptyState message="no assets found" />
       ) : (
         <>
           <Table

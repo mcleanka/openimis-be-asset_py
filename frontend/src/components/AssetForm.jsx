@@ -230,28 +230,8 @@ function AssetForm({ asset, onClose }) {
                 loading={regionsLoading}
               />
 
-              <FormField
-                label="Assigned To"
-                name="assigned_to"
-                type="select"
-                required={false}
-                value={values.assigned_to}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                options={filteredUsers}
-                error={errors.assigned_to}
-                touched={touched.assigned_to}
-                loading={usersLoading}
-                disabled={!values.region}
-                placeholder={
-                  !values.region
-                    ? "Select a region first"
-                    : "Select user (optional)"
-                }
-              />
-
               {values.region && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500">
                   {filteredUsers.length === 0
                     ? "No users available in this region"
                     : ""}
