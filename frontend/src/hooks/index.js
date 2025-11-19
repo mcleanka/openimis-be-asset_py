@@ -183,7 +183,6 @@ export function useForm(initialValues, onSubmit) {
 
 /**
  * Custom hook for managing search and filter state
- * Handles building query parameters for API calls
  */
 export function useSearchAndFilter(baseUrl) {
   const [search, setSearch] = useState("");
