@@ -116,7 +116,7 @@ class AssetListSerializer(serializers.ModelSerializer):
         model = Asset
         fields = [
             'id', 'name', 'serial_number', 'device_type', 'device_type_name',
-            'status', 'status_name', 'region_name', 'assigned_to_name'
+            'status', 'status_name', 'region', 'region_name', 'assigned_to_name'
         ]
 
 

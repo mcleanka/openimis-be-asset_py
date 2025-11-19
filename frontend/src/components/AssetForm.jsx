@@ -44,7 +44,7 @@ function AssetForm({ asset, onClose }) {
     {
       name: asset?.name || "",
       serial_number: asset?.serial_number || "",
-      region: asset?.region_name || "",
+      region: asset?.region || asset?.region_name || "",
       device_type: asset?.device_type?.id || asset?.device_type || "",
       status: asset?.status?.id || asset?.status || "",
       assigned_to: asset?.assigned_to?.id || asset?.assigned_to || "",
