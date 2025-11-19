@@ -158,7 +158,6 @@ class AssetViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):
-        """Assign asset to a user with business logic"""
         asset = self.get_object()
         user_id = request.data.get('user_id')
 

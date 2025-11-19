@@ -185,11 +185,6 @@ class AssetDetailSerializer(serializers.ModelSerializer):
                 'assigned_to': 'Assigned status requires a user to be assigned.'
             })
 
-        if assigned_to and not assigned_to.is_active:
-            raise serializers.ValidationError({
-                'assigned_to': 'Cannot assign asset to inactive user.'
-            })
-
         if status and status.code == 'retired' and assigned_to:
             raise serializers.ValidationError({
                 'status': 'Cannot retire asset that is assigned to a user.'

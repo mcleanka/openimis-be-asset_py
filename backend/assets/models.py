@@ -177,11 +177,7 @@ class User(models.Model):
 class Asset(models.Model):
     name = models.CharField(max_length=200)
     serial_number = models.CharField(max_length=100, unique=True)
-    region = models.ForeignKey(
-        Region, on_delete=models.CASCADE, related_name='assets')
 
-    # Make device_type & status optional
-    # for backward compatibility with both old and new tests
     device_type = models.ForeignKey(
         DeviceType,
         on_delete=models.PROTECT,
@@ -205,7 +201,7 @@ class Asset(models.Model):
     )
     region = models.ForeignKey(
         Region,
-        on_delete=models.PROTECT,  # Keep region as required
+        on_delete=models.PROTECT,
         related_name='assets'
     )
 
@@ -218,44 +214,43 @@ class Asset(models.Model):
     def __str__(self):
         return f"{self.name} ({self.serial_number})"
 
+    def _get_default_device_type(self):
+        """Get default device type"""
+        return DeviceType.objects.filter(code='phone').first()
+
+    def _get_default_status(self):
+        """Get default asset status"""
+        return AssetStatus.objects.filter(is_default=True).first()
+
     def save(self, *args, **kwargs):
         """Set default values for new fields if not provided"""
         if not self.device_type:
-            phone_type = DeviceType.objects.filter(code='phone').first()
-            if phone_type:
-                self.device_type = phone_type
+            self.device_type = self._get_default_device_type()
 
         if not self.status:
-            available_status = AssetStatus.objects.filter(
-                is_default=True).first()
-            if available_status:
-                self.status = available_status
+            self.status = self._get_default_status()
 
-        self.validateData()
         super().save(*args, **kwargs)
 
-    def validateData(self):
-        """Validation for business rules"""
-        # Skip validation if required fields are missing
-        # for test compatibility
+    def _get_status_by_code(self, code):
+        """Helper to get status by code with caching"""
+        if not hasattr(self, '_status_cache'):
+            self._status_cache = {}
+
+        if code not in self._status_cache:
+            self._status_cache[code] = AssetStatus.objects.get(code=code)
+
+        return self._status_cache[code]
+
+    def _validate_assignment_rules(self):
+        """Core validation logic for asset assignment"""
         if not self.status or not self.region:
             return
 
-        # Assignment validation
-        if self.assigned_to:
-            if self.assigned_to.region != self.region:
-                raise ValidationError(
-                    "Asset can only be assigned to a user in the same region.")
+        if self.assigned_to and self.assigned_to.region != self.region:
+            raise ValidationError(
+                "Asset can only be assigned to a user in the same region.")
 
-            if self.status.code != 'assigned':
-                raise ValidationError(
-                    "Asset status must be 'assigned' when assigning a user.")
-
-            # Check if user is active
-            if not self.assigned_to.is_active:
-                raise ValidationError("Cannot assign asset to inactive user.")
-
-        # Status consistency validation
         if self.status.code == 'assigned' and not self.assigned_to:
             raise ValidationError("Assigned assets must have a user assigned.")
 
@@ -263,54 +258,53 @@ class Asset(models.Model):
             raise ValidationError(
                 "Unassigned assets cannot have an assigned user.")
 
-        # Prevent assigning retired assets
         if self.status.code == 'retired' and self.assigned_to:
             raise ValidationError(
                 "Retired assets cannot be assigned to users.")
 
-    def assign_to_user(self, user):
-        """Business method to assign asset to user"""
-        assigned_status = AssetStatus.objects.get(code='assigned')
+    def clean(self):
+        """Django model validation - called before save in forms"""
+        self._validate_assignment_rules()
 
-        if self.status != assigned_status:
+    def validate_for_assignment(self, user):
+        """Validate if asset can be assigned to user"""
+        if not self.is_available:
             raise ValidationError("Only available assets can be assigned.")
+
         if user.region != self.region:
             raise ValidationError("User must be in the same region as asset.")
-        if not user.is_active:
-            raise ValidationError("Cannot assign asset to inactive user.")
+
+    def assign_to_user(self, user):
+        """Business method to assign asset to user"""
+        self.validate_for_assignment(user)
 
         self.assigned_to = user
-        self.status = assigned_status
+        self.status = self._get_status_by_code('assigned')
         self.save()
 
     def unassign(self):
         """Business method to unassign asset"""
-        available_status = AssetStatus.objects.get(code='available')
-
-        if self.status.code != 'assigned':
+        if not self.is_assigned:
             raise ValidationError("Only assigned assets can be unassigned.")
 
         self.assigned_to = None
-        self.status = available_status
+        self.status = self._get_status_by_code('available')
+        self.save()
+
+    def _change_status(self, new_status_code, clear_assignment=False):
+        if clear_assignment and self.assigned_to:
+            self.assigned_to = None
+
+        self.status = self._get_status_by_code(new_status_code)
         self.save()
 
     def mark_for_repair(self):
         """Mark asset for repair"""
-        repair_status = AssetStatus.objects.get(code='repair')
-
-        if self.status.code == 'assigned':
-            self.assigned_to = None
-        self.status = repair_status
-        self.save()
+        self._change_status('repair', clear_assignment=True)
 
     def retire(self):
         """Business method to retire asset"""
-        retired_status = AssetStatus.objects.get(code='retired')
-
-        if self.status.code == 'assigned':
-            self.assigned_to = None
-        self.status = retired_status
-        self.save()
+        self._change_status('retired', clear_assignment=True)
 
     @property
     def is_available(self):

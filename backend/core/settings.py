@@ -84,18 +84,6 @@ DATABASES = {
     }
 }
 
-# For production, we might want PostgreSQL
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DB_NAME', 'asset_manager'),
-#         'USER': os.environ.get('DB_USER', 'postgres'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-#         'HOST': os.environ.get('DB_HOST', 'localhost'),
-#         'PORT': os.environ.get('DB_PORT', '5432'),
-#     }
-# }
-
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -136,19 +124,17 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Optional: For development only - allows all origins (less secure)
+# For development only - allows all origins
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 
-# REST Framework settings - Enhanced for assignment
+# REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # For assignment simplicity
-        # In production: 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.TokenAuthentication',  # If we add auth
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -163,12 +149,10 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # 'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
-    # For better API responses
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    # For uniform API responses
+    'EXCEPTION_HANDLER': 'assets.exceptions.custom_exception_handler',
 
     # Date formatting
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
