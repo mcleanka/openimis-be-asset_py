@@ -28,6 +28,7 @@ export function useFetch(url, options = {}) {
         return response.data;
       } catch (err) {
         const errorMessage =
+          err.response?.data?.error?.details ||
           err.response?.data?.message ||
           err.message ||
           "An error occurred while fetching data";
@@ -81,7 +82,10 @@ export function useAsync(asyncFunction, immediate = true) {
         return response;
       } catch (err) {
         const errorMessage =
-          err.response?.data?.message || err.message || "An error occurred";
+          err.response?.data?.error?.details ||
+          err.response?.data?.message ||
+          err.message ||
+          "An error occurred";
         setState({
           loading: false,
           error: errorMessage,
@@ -115,7 +119,6 @@ export function useForm(initialValues, onSubmit) {
         ...prev,
         [name]: value,
       }));
-      // Clear error when user starts typing
       if (errors[name]) {
         setErrors((prev) => ({
           ...prev,
