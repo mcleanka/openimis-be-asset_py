@@ -5,7 +5,7 @@
 ### **1. Clone and Setup**
 
 ```bash
-git clone <your-repo>
+git clone <the-asset-manager-repo>
 cd asset-manager
 make setup
 ```
