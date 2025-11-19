@@ -1,52 +1,25 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { useState } from "react";
 import Table from "./common/Table";
 import LoadingSpinner from "./common/LoadingSpinner";
 import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
+import { useFetch } from "../hooks";
 
 function AssetAssignmentList() {
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [filter, setFilter] = useState("all");
 
-  useEffect(() => {
-    fetchAssignments();
-  }, [filter]);
+  let url = "/api/asset-assignments/";
+  if (filter === "active") {
+    url += "?active=true";
+  } else if (filter === "returned") {
+    url += "?active=false";
+  }
 
-  const fetchAssignments = async () => {
-    try {
-      if (!isInitialLoad) {
-        setLoading(true);
-      }
-
-      let url = "/api/asset-assignments/";
-      if (filter === "active") {
-        url += "?active=true";
-      } else if (filter === "returned") {
-        url += "?active=false";
-      }
-
-      const response = await axios.get(url);
-
-      const data = response.data || [];
-      setAssignments(Array.isArray(data) ? data : []);
-      setError(null);
-    } catch (err) {
-      setError("Failed to load assignments");
-      console.error("Error fetching assignments:", err);
-      setAssignments([]);
-    } finally {
-      setLoading(false);
-      setIsInitialLoad(false);
-    }
-  };
+  const { data: assignments = [], loading, error, retry } = useFetch(url);
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorAlert message={error} onRetry={fetchAssignments} />;
+  if (error) return <ErrorAlert message={error} onRetry={retry} />;
 
   return (
     <div>

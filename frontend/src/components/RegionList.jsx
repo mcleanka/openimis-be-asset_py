@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
 import Table from "./common/Table";
 import LoadingSpinner from "./common/LoadingSpinner";
@@ -6,44 +6,27 @@ import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
 import Button from "./common/Button";
-import { useAsync } from "../hooks";
+import { useFetch, useAsync } from "../hooks";
 
 function RegionList({ onCreateNew, onEdit }) {
-  const [regions, setRegions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [deleteError, setDeleteError] = useState(null);
+
+  const {
+    data: regions = [],
+    loading,
+    error,
+    retry,
+    refetch,
+  } = useFetch("/api/regions/");
 
   const deleteRegion = useCallback(async (id) => {
     return axios.delete(`/api/regions/${id}/`);
   }, []);
 
-  const {
-    execute: executeDelete,
-    loading: deleteLoading,
-    error: deleteError,
-  } = useAsync(deleteRegion, false);
-
-  useEffect(() => {
-    fetchRegions();
-  }, []);
-
-  const fetchRegions = async () => {
-    try {
-      if (!isInitialLoad) {
-        setLoading(true);
-      }
-      const response = await axios.get("/api/regions/");
-      setRegions(response.data);
-      setError(null);
-    } catch (err) {
-      setError("Failed to load regions");
-      console.error("Error fetching regions:", err);
-    } finally {
-      setLoading(false);
-      setIsInitialLoad(false);
-    }
-  };
+  const { execute: executeDelete, loading: deleteLoading } = useAsync(
+    deleteRegion,
+    false
+  );
 
   const handleDelete = useCallback(
     async (id) => {
@@ -58,20 +41,23 @@ function RegionList({ onCreateNew, onEdit }) {
 
       try {
         await executeDelete(id);
-        fetchRegions();
+        setDeleteError(null);
+        refetch();
       } catch (err) {
         console.error("Error deleting region:", err);
         if (err.response?.data?.detail) {
-          alert(`Cannot delete region: ${err.response.data.detail}`);
+          setDeleteError(`Cannot delete region: ${err.response.data.detail}`);
+        } else {
+          setDeleteError("Failed to delete region");
         }
       }
     },
-    [executeDelete, regions]
+    [executeDelete, regions, refetch]
   );
 
   if (loading) return <LoadingSpinner />;
 
-  if (error) return <ErrorAlert message={error} onRetry={fetchRegions} />;
+  if (error) return <ErrorAlert message={error} onRetry={retry} />;
 
   return (
     <div>
@@ -139,7 +125,7 @@ function RegionList({ onCreateNew, onEdit }) {
       {deleteError && (
         <ErrorAlert
           message={deleteError}
-          onDismiss={() => {}}
+          onDismiss={() => setDeleteError(null)}
           autoDismiss={false}
         />
       )}

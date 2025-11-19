@@ -1,53 +1,47 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import Button from "../common/Button";
 import ErrorAlert from "../common/ErrorAlert";
 import LoadingSpinner from "../common/LoadingSpinner";
+import { useFetch, useAsync } from "../../hooks";
 
 /**
  * Modal for assigning an asset to a user
  */
 export function AssignAssetModal({ asset, onClose, onSuccess }) {
-  const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const {
+    data: users = [],
+    loading,
+    error,
+  } = useFetch("/api/users/?", { params: { region_name: asset.region_name } });
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get("/api/users/");
-      setUsers(response.data || []);
-    } catch (err) {
-      setError(err.response?.data?.error?.details || "Failed to load users");
-    } finally {
-      setLoading(false);
-    }
+  const assignAsset = async (userId) => {
+    const response = await axios.post(`/api/assets/${asset.id}/assign/`, {
+      user_id: userId,
+    });
+    return response.data;
   };
+
+  const {
+    loading: submitting,
+    error: submitError,
+    execute: handleAssign,
+  } = useAsync(assignAsset, false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedUserId) {
-      setError("Please select a user");
       return;
     }
 
-    setSubmitting(true);
     try {
-      const response = await axios.post(`/api/assets/${asset.id}/assign/`, {
-        user_id: parseInt(selectedUserId),
-      });
-      onSuccess?.(response.data);
+      const result = await handleAssign(parseInt(selectedUserId));
+      onSuccess?.(result);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.error?.details || "Failed to assign asset");
-    } finally {
-      setSubmitting(false);
+      console.error("Error assigning asset:", err);
     }
   };
 
@@ -84,12 +78,11 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
-          {error && (
+          {(error || submitError) && (
             <div className="mb-5">
-              <ErrorAlert message={error} onDismiss={() => setError(null)} />
+              <ErrorAlert message={error || submitError} onDismiss={() => {}} />
             </div>
-          )}
-
+          )}{" "}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select User
@@ -107,7 +100,6 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
               ))}
             </select>
           </div>
-
           <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
             <Button onClick={onClose} variant="secondary">
               Cancel
@@ -151,21 +143,24 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
  * Confirmation modal for unassigning an asset
  */
 export function UnassignAssetModal({ asset, onClose, onSuccess }) {
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const unassignAsset = async () => {
+    const response = await axios.post(`/api/assets/${asset.id}/unassign/`);
+    return response.data;
+  };
+
+  const {
+    loading: submitting,
+    error,
+    execute: handleUnassign,
+  } = useAsync(unassignAsset, false);
 
   const handleSubmit = async () => {
-    setSubmitting(true);
     try {
-      const response = await axios.post(`/api/assets/${asset.id}/unassign/`);
-      onSuccess?.(response.data);
+      const result = await handleUnassign();
+      onSuccess?.(result);
       onClose();
     } catch (err) {
-      setError(
-        err.response?.data?.error?.details || "Failed to unassign asset"
-      );
-    } finally {
-      setSubmitting(false);
+      console.error("Error unassigning asset:", err);
     }
   };
 
@@ -201,7 +196,7 @@ export function UnassignAssetModal({ asset, onClose, onSuccess }) {
         <div className="p-6">
           {error && (
             <div className="mb-5">
-              <ErrorAlert message={error} onDismiss={() => setError(null)} />
+              <ErrorAlert message={error} onDismiss={() => {}} />
             </div>
           )}
 
@@ -282,21 +277,24 @@ export function UnassignAssetModal({ asset, onClose, onSuccess }) {
  * Confirmation modal for marking asset as repair
  */
 export function MarkRepairModal({ asset, onClose, onSuccess }) {
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const markAssetRepair = async () => {
+    const response = await axios.post(`/api/assets/${asset.id}/mark-repair/`);
+    return response.data;
+  };
+
+  const {
+    loading: submitting,
+    error,
+    execute: handleMarkRepair,
+  } = useAsync(markAssetRepair, false);
 
   const handleSubmit = async () => {
-    setSubmitting(true);
     try {
-      const response = await axios.post(`/api/assets/${asset.id}/mark-repair/`);
-      onSuccess?.(response.data);
+      const result = await handleMarkRepair();
+      onSuccess?.(result);
       onClose();
     } catch (err) {
-      setError(
-        err.response?.data?.error?.details || "Failed to mark asset for repair"
-      );
-    } finally {
-      setSubmitting(false);
+      console.error("Error marking asset for repair:", err);
     }
   };
 
@@ -332,7 +330,7 @@ export function MarkRepairModal({ asset, onClose, onSuccess }) {
         <div className="p-6">
           {error && (
             <div className="mb-5">
-              <ErrorAlert message={error} onDismiss={() => setError(null)} />
+              <ErrorAlert message={error} onDismiss={() => {}} />
             </div>
           )}
 
@@ -409,19 +407,24 @@ export function MarkRepairModal({ asset, onClose, onSuccess }) {
  * Confirmation modal for retiring an asset
  */
 export function RetireAssetModal({ asset, onClose, onSuccess }) {
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const retireAsset = async () => {
+    const response = await axios.post(`/api/assets/${asset.id}/retire/`);
+    return response.data;
+  };
+
+  const {
+    loading: submitting,
+    error,
+    execute: handleRetire,
+  } = useAsync(retireAsset, false);
 
   const handleSubmit = async () => {
-    setSubmitting(true);
     try {
-      const response = await axios.post(`/api/assets/${asset.id}/retire/`);
-      onSuccess?.(response.data);
+      const result = await handleRetire();
+      onSuccess?.(result);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.error?.details || "Failed to retire asset");
-    } finally {
-      setSubmitting(false);
+      console.error("Error retiring asset:", err);
     }
   };
 
@@ -457,7 +460,7 @@ export function RetireAssetModal({ asset, onClose, onSuccess }) {
         <div className="p-6">
           {error && (
             <div className="mb-5">
-              <ErrorAlert message={error} onDismiss={() => setError(null)} />
+              <ErrorAlert message={error} onDismiss={() => {}} />
             </div>
           )}
 

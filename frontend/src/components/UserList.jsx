@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import axios from "axios";
 import Table from "./common/Table";
 import LoadingSpinner from "./common/LoadingSpinner";
@@ -6,13 +6,16 @@ import ErrorAlert from "./common/ErrorAlert";
 import EmptyState from "./common/EmptyState";
 import PageHeader from "./common/PageHeader";
 import Button from "./common/Button";
-import { useAsync } from "../hooks";
+import { useAsync, useFetch } from "../hooks";
 
 function UserList({ onCreateNew, onEdit }) {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  // Use useFetch for fetching users
+  const {
+    data: users,
+    loading,
+    error,
+    refetch: fetchUsers,
+  } = useFetch("/api/users/");
 
   const deleteUser = useCallback(async (id) => {
     return axios.delete(`/api/users/${id}/`);
@@ -24,30 +27,9 @@ function UserList({ onCreateNew, onEdit }) {
     error: deleteError,
   } = useAsync(deleteUser, false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      if (!isInitialLoad) {
-        setLoading(true);
-      }
-      const response = await axios.get("/api/users/");
-      setUsers(response.data);
-      setError(null);
-    } catch (err) {
-      setError("Failed to load users");
-      console.error("Error fetching users:", err);
-    } finally {
-      setLoading(false);
-      setIsInitialLoad(false);
-    }
-  };
-
   const handleDelete = useCallback(
     async (id) => {
-      const user = users.find((u) => u.id === id);
+      const user = users?.find((u) => u.id === id);
       if (
         !window.confirm(
           `Are you sure you want to delete the user "${user?.name}"? This action cannot be undone if the user has assigned assets.`
@@ -58,7 +40,7 @@ function UserList({ onCreateNew, onEdit }) {
 
       try {
         await executeDelete(id);
-        fetchUsers();
+        fetchUsers(); // Refetch the list after deletion
       } catch (err) {
         console.error("Error deleting user:", err);
         if (err.response?.data?.detail) {
@@ -66,17 +48,19 @@ function UserList({ onCreateNew, onEdit }) {
         }
       }
     },
-    [executeDelete, users]
+    [executeDelete, users, fetchUsers]
   );
 
   if (loading) return <LoadingSpinner />;
 
   if (error) return <ErrorAlert message={error} onRetry={fetchUsers} />;
 
+  const userList = users || [];
+
   return (
     <div>
       <PageHeader
-        title={users.length === 0 ? "No Users Found" : "Users"}
+        title={userList.length === 0 ? "No Users Found" : "Users"}
         action={
           <Button onClick={onCreateNew} variant="primary">
             Create New User
@@ -84,7 +68,7 @@ function UserList({ onCreateNew, onEdit }) {
         }
       />
 
-      {users.length === 0 ? (
+      {userList.length === 0 ? (
         <EmptyState message="no users found" />
       ) : (
         <Table
@@ -122,7 +106,7 @@ function UserList({ onCreateNew, onEdit }) {
               render: (value) => new Date(value).toLocaleDateString(),
             },
           ]}
-          data={users}
+          data={userList}
           actions={(user) => (
             <div className="flex gap-2 flex-wrap">
               <Button
