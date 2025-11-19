@@ -101,7 +101,7 @@ function UserList({ onCreateNew, onEdit }) {
   return (
     <div>
       <PageHeader
-        title={userList.length === 0 ? "No Users Found" : "Users"}
+        title={"Users"}
         action={
           <Button onClick={onCreateNew} variant="primary">
             Create New User
@@ -117,6 +117,14 @@ function UserList({ onCreateNew, onEdit }) {
         filterOptions={filterOptions}
         placeholder="Search by name or email..."
       />
+
+      {deleteError && (
+        <ErrorAlert
+          message={deleteError}
+          onDismiss={() => {}}
+          autoDismiss={false}
+        />
+      )}
 
       {userList.length === 0 ? (
         <EmptyState message="no users found" />
@@ -179,14 +187,6 @@ function UserList({ onCreateNew, onEdit }) {
               </Button>
             </div>
           )}
-        />
-      )}
-
-      {deleteError && (
-        <ErrorAlert
-          message={deleteError}
-          onDismiss={() => {}}
-          autoDismiss={false}
         />
       )}
     </div>

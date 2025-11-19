@@ -147,7 +147,7 @@ function Dashboard() {
             />
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg">
+          <div className="bg-white border border-gray-200 rounded-md">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-base font-semibold text-gray-900">
                 Asset Distribution By Status
@@ -155,7 +155,7 @@ function Dashboard() {
             </div>
             <div className="p-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 border border-gray-200 rounded-lg">
+                <div className="text-center p-4 border border-gray-200 rounded-md">
                   <p className="text-sm font-medium text-gray-600 mb-2">
                     Available
                   </p>
@@ -163,7 +163,7 @@ function Dashboard() {
                     {dashboardStats.availableAssets}
                   </p>
                 </div>
-                <div className="text-center p-4 border border-gray-200 rounded-lg">
+                <div className="text-center p-4 border border-gray-200 rounded-md">
                   <p className="text-sm font-medium text-gray-600 mb-2">
                     Assigned
                   </p>
@@ -171,7 +171,7 @@ function Dashboard() {
                     {dashboardStats.assignedAssets}
                   </p>
                 </div>
-                <div className="text-center p-4 border border-gray-200 rounded-lg">
+                <div className="text-center p-4 border border-gray-200 rounded-md">
                   <p className="text-sm font-medium text-gray-600 mb-2">
                     Under Maintenance
                   </p>
@@ -179,7 +179,7 @@ function Dashboard() {
                     {dashboardStats.assetsInRepair}
                   </p>
                 </div>
-                <div className="text-center p-4 border border-gray-200 rounded-lg">
+                <div className="text-center p-4 border border-gray-200 rounded-md">
                   <p className="text-sm font-medium text-gray-600 mb-2">
                     Retired
                   </p>
@@ -192,7 +192,7 @@ function Dashboard() {
           </div>
 
           {Object.keys(dashboardStats.assetsByRegion).length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg">
+            <div className="bg-white border border-gray-200 rounded-md">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-base font-semibold text-gray-900">
                   Assets Distribution By Region
@@ -204,7 +204,7 @@ function Dashboard() {
                     ([region, count]) => (
                       <div
                         key={region}
-                        className="flex justify-between items-center p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                        className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:border-gray-300 transition-colors"
                       >
                         <span className="text-sm font-medium text-gray-900">
                           {region}
@@ -221,7 +221,7 @@ function Dashboard() {
           )}
 
           {Object.keys(dashboardStats.assetsByType).length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg">
+            <div className="bg-white border border-gray-200 rounded-md">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-base font-semibold text-gray-900">
                   Assets Distribution By Type
@@ -233,7 +233,7 @@ function Dashboard() {
                     ([type, count]) => (
                       <div
                         key={type}
-                        className="flex justify-between items-center p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                        className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:border-gray-300 transition-colors"
                       >
                         <span className="text-sm font-medium text-gray-900">
                           {type}

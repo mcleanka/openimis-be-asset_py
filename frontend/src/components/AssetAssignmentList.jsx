@@ -16,15 +16,12 @@ function AssetAssignmentList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch filter options
   const { data: regions = [] } = useFetch("/api/regions/");
   const { data: assetStatuses = [] } = useFetch("/api/asset-statuses/");
 
-  // Build query string
   const buildUrl = () => {
     const params = new URLSearchParams();
 
-    // Add active/inactive filter from tab selection
     if (filter === "active") {
       params.append("active", "true");
     } else if (filter === "returned") {

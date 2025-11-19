@@ -49,7 +49,7 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-white border border-gray-200 rounded-md shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -90,7 +90,7 @@ export function AssignAssetModal({ asset, onClose, onSuccess }) {
             <select
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">Choose a user...</option>
               {users.map((user) => (
@@ -166,7 +166,7 @@ export function UnassignAssetModal({ asset, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-white border border-gray-200 rounded-md shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -300,7 +300,7 @@ export function MarkRepairModal({ asset, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-white border border-gray-200 rounded-md shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -430,7 +430,7 @@ export function RetireAssetModal({ asset, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 opacity-100 flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-white border border-gray-200 rounded-md shadow-xl max-w-md w-full">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">

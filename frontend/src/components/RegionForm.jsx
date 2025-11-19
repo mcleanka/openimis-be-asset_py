@@ -103,7 +103,7 @@ function RegionForm({ region, onClose }) {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-lg shadow-sm border border-slate-200 p-6"
+        className="bg-white rounded-md shadow-sm border border-slate-200 p-6"
       >
         <div className="space-y-6">
           <FormField

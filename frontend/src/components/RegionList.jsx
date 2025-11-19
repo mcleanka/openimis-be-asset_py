@@ -64,7 +64,7 @@ function RegionList({ onCreateNew, onEdit }) {
   return (
     <div>
       <PageHeader
-        title={regions.length === 0 ? "No Regions Found" : "Regions"}
+        title={"Regions"}
         action={
           <Button onClick={onCreateNew} variant="primary">
             Create New Region

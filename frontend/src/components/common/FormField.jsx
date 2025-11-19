@@ -1,4 +1,3 @@
-import React from "react";
 import FieldError from "./FieldError";
 
 function FormField({
@@ -13,6 +12,8 @@ function FormField({
   options = [],
   error,
   touched,
+  inputRef,
+  ...props
 }) {
   const baseInputStyles =
     "w-full px-4 py-2.5 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white text-gray-900";
@@ -25,7 +26,7 @@ function FormField({
   if (type === "select") {
     return (
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
           {label}
           {required && <span className="text-red-600">*</span>}
         </label>
@@ -36,6 +37,7 @@ function FormField({
           onBlur={onBlur}
           required={required}
           className={inputClasses}
+          {...props}
         >
           <option value="">Select {label.toLowerCase()}</option>
           {options.map((option) => (
@@ -56,6 +58,7 @@ function FormField({
         {required && <span className="text-red-600">*</span>}
       </label>
       <input
+        ref={inputRef}
         type={type}
         name={name}
         value={value}
@@ -64,6 +67,7 @@ function FormField({
         placeholder={placeholder}
         required={required}
         className={inputClasses}
+        {...props}
       />
       <FieldError error={error} show={touched} />
     </div>

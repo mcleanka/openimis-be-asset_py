@@ -1,6 +1,6 @@
 function StatCard({ title, value, description, icon }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="bg-white border border-gray-200 rounded-md p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xl font-semibold text-gray-900">{title}</p>
@@ -8,7 +8,7 @@ function StatCard({ title, value, description, icon }) {
             {description}: {value}
           </p>
         </div>
-        <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
+        <div className="w-12 h-12 bg-gray-50 rounded-md flex items-center justify-center">
           {icon}
         </div>
       </div>

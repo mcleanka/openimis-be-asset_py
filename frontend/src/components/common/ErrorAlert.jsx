@@ -27,7 +27,7 @@ function ErrorAlert({
   if (!isVisible) return null;
 
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <p className="text-red-700 text-sm">Error: {message}</p>
       </div>
