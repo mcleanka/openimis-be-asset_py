@@ -22,7 +22,7 @@ migrate-create:
 
 seed:
 	@echo "Seeding database..."
-	cd backend && python manage.py seed_data
+	cd backend && python seed_data.py
 
 # Testing
 test: test-backend test-frontend
