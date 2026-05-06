@@ -1,0 +1,3 @@
+recursive-include asset *.py
+include README.md
+include setup.py
