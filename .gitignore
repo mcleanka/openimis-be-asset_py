@@ -4,25 +4,39 @@ __pycache__/
 *$py.class
 *.so
 .Python
-*.egg-info/
-*.egg
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-build/
-dist/
-
-# Virtualenvs
 venv/
-.venv/
 env/
 ENV/
+*.egg-info/
+.pytest_cache/
+*.log
 
-# IDE / OS
+# Django
+*.sqlite3
+db.sqlite3
+/media
+/staticfiles
+local_settings.py
+
+# React
+node_modules/
+/build
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
 .vscode/
 .idea/
 *.swp
-.DS_Store
+*.swo
+*~
 
-# Logs
-*.log
+# OS
+.DS_Store
+Thumbs.db
