@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install tooling
+        run: pip install flake8
+      - name: Lint
+        run: flake8 asset --count --max-line-length=120 --statistics
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tooling
+        run: pip install build
+      - name: Build sdist + wheel
+        run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # Integration test inside an openIMIS assembly. Disabled by default —
+  # enable once a test runner with a Postgres + legacy IMIS schema is wired up
+  # (mirrors openimis-be_py CI).
+  # assembly-tests:
+  #   runs-on: ubuntu-latest
+  #   services:
+  #     postgres:
+  #       image: postgres:16
+  #       env:
+  #         POSTGRES_USER: imis
+  #         POSTGRES_PASSWORD: imis
+  #         POSTGRES_DB: imis
+  #       ports: ["5432:5432"]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Run module tests in assembly
+  #       run: echo "TODO: clone openimis-be_py, install module, run manage.py test asset"
