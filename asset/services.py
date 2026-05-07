@@ -1,10 +1,5 @@
 """
 Service layer for the Asset module.
-
-All business rules live here — pure functions that take primitive args / model
-instances and return either updated instances or a list of error dicts of the
-shape ``{"message": str, "detail": str}`` expected by ``OpenIMISMutation``.
-
 Both GraphQL mutations (preferred) and REST views (optional, for backwards
 compatibility) call into this module — never duplicate rules in either layer.
 """

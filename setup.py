@@ -17,8 +17,8 @@ setup(
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://openimis.org/",
-    author="Asset Manager Team",
-    author_email="dev@example.org",
+    author="Mclean Kasambala",
+    author_email="mcleankasambala@gmail.com",
     install_requires=[
         "django>=4.2,<5.0",
         "djangorestframework",

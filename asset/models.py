@@ -1,14 +1,3 @@
-"""
-openIMIS Asset module models.
-
-Conventions:
-* Inherit ``core.HistoryModel`` so every entity gets:
-    - ``id`` (UUID PK), ``uuid`` (legacy compatibility), ``legacy_id``,
-      ``validity_from``, ``validity_to``, ``version``, ``json_ext``.
-* Soft-delete by setting ``validity_to``; never hard-delete from code paths.
-* No custom ``User``/``Region`` — reuse ``core.User`` and
-  ``location.Location``.
-"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -67,7 +56,6 @@ class Asset(HistoryModel):
         on_delete=models.PROTECT,
         related_name="assets",
     )
-    # openIMIS hierarchical location; we expect ``type='R'`` (region) here.
     location = models.ForeignKey(
         Location,
         on_delete=models.PROTECT,
@@ -132,9 +120,7 @@ class AssetAssignment(HistoryModel):
 
 
 class AssetMutation(models.Model):
-    """Join table linking openIMIS ``MutationLog`` rows to assets, mirroring
-    the pattern used by ``claim.ClaimMutation`` / ``insuree.InsureeMutation``.
-    """
+    """Join table linking openIMIS ``MutationLog`` rows to assets affected by that mutation."""
     asset = models.ForeignKey(
         Asset, on_delete=models.CASCADE, related_name="mutations")
     mutation = models.ForeignKey(
