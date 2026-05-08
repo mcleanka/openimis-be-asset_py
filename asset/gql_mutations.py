@@ -19,8 +19,8 @@ class AssetInputType(OpenIMISMutation.Input):
     uuid = graphene.String(required=False)
     name = graphene.String(required=True)
     serial_number = graphene.String(required=True)
-    device_type_id = graphene.Int(required=False)
-    status_id = graphene.Int(required=False)
+    device_type_id = graphene.String(required=False)
+    status_id = graphene.String(required=False)
     location_id = graphene.Int(required=True)
 
 
@@ -41,7 +41,6 @@ def _check(user, perms):
 
 
 def _get_asset(uuid):
-    # HistoryModel exposes ``uuid`` as a property aliased to ``id``
     return Asset.objects.filter(id=uuid, is_deleted=False).first()
 
 
@@ -115,9 +114,7 @@ class AssignAssetMutation(OpenIMISMutation):
         asset = _get_asset(data["uuid"])
         if not asset:
             return [{"message": _("asset.validation.not_found")}]
-        holder = CoreUser.objects.filter(
-            id=data["user_uuid"], is_deleted=False
-        ).first()
+        holder = CoreUser.objects.filter(id=data["user_uuid"]).first()
         if not holder:
             return [{"message": _("asset.validation.user_not_found")}]
         return services.assign_asset(

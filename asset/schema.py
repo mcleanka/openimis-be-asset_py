@@ -49,7 +49,7 @@ class Query(graphene.ObjectType):
         qs = Asset.objects.all()
         if not kwargs.get("show_history"):
             qs = qs.filter(is_deleted=False)
-        # TODO row-level security via LocationManager (if your assembly uses it)
+
         return qs
 
     def resolve_asset_assignments(self, info, **kwargs):
