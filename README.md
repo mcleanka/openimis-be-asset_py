@@ -12,20 +12,19 @@ their assignment to users across regional teams.
 
 ## Reuse of openIMIS core entities
 
-| Concept | This module | Reused from |
-|---|---|---|
-| Region | `location.Location` (`type='R'`) | `openimis-be-location` |
-| User holding an asset | `core.User` (`InteractiveUser`) | `openimis-be-core` |
-| Roles & rights | `core.Role`, `core.RoleRight` | `openimis-be-core` |
-| History / soft-delete | `core.HistoryModel` | `openimis-be-core` |
-| Mutation audit log | `core.MutationLog` + `AssetMutation` | `openimis-be-core` |
+| Concept               | This module                          | Reused from            |
+| --------------------- | ------------------------------------ | ---------------------- |
+| Region                | `location.Location` (`type='R'`)     | `openimis-be-location` |
+| User holding an asset | `core.User` (`InteractiveUser`)      | `openimis-be-core`     |
+| Roles & rights        | `core.Role`, `core.RoleRight`        | `openimis-be-core`     |
+| History / soft-delete | `core.HistoryModel`                  | `openimis-be-core`     |
+| Mutation audit log    | `core.MutationLog` + `AssetMutation` | `openimis-be-core`     |
 
 ## Configuration
 
 Defaults in `asset.apps.DEFAULT_CFG`. Overridable per deployment via
 `core.ModuleConfiguration` (the `openimis.json` mechanism). Permission rights
-codes live in the `1600xx` block (free at the time of writing — verify against
-your assembly).
+codes live in the `1600xx` block.
 
 ```json
 {
@@ -54,16 +53,16 @@ your assembly).
 
 ## Permissions
 
-| Right | Action |
-|---|---|
+| Right  | Action                                 |
+| ------ | -------------------------------------- |
 | 160001 | Query assets / device types / statuses |
-| 160002 | Create asset |
-| 160003 | Update asset |
-| 160004 | Delete (soft-delete) asset |
-| 160005 | Assign asset to user |
-| 160006 | Unassign asset |
-| 160007 | Mark for repair |
-| 160008 | Retire asset |
+| 160002 | Create asset                           |
+| 160003 | Update asset                           |
+| 160004 | Delete (soft-delete) asset             |
+| 160005 | Assign asset to user                   |
+| 160006 | Unassign asset                         |
+| 160007 | Mark for repair                        |
+| 160008 | Retire asset                           |
 
 ## Module structure
 
