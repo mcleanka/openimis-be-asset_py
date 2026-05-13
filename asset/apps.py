@@ -17,6 +17,7 @@ DEFAULT_CFG = {
     "gql_mutation_unassign_assets_perms": ["160006"],
     "gql_mutation_repair_assets_perms": ["160007"],
     "gql_mutation_retire_assets_perms": ["160008"],
+    "gql_mutation_lose_assets_perms": ["160009"],
 
     # Behaviour flags
     "enforce_same_region_assignment": True,
@@ -41,6 +42,7 @@ class AssetConfig(AppConfig):
     gql_mutation_unassign_assets_perms = []
     gql_mutation_repair_assets_perms = []
     gql_mutation_retire_assets_perms = []
+    gql_mutation_lose_assets_perms = []
     enforce_same_region_assignment = True
     default_device_type_code = "phone"
     default_asset_status_code = "available"

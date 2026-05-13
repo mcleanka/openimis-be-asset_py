@@ -6,7 +6,7 @@ their assignment to users across regional teams.
 ## Concepts
 
 - `DeviceType` — phone, tablet, … (reference data, history tracked).
-- `AssetStatus` — available / assigned / repair / retired (reference data).
+- `AssetStatus` — available / assigned / repair / retired / lost (reference data).
 - `Asset` — a tracked device, scoped to a `location.Location` (region).
 - `AssetAssignment` — audit-trail record of a `core.User` holding an `Asset`.
 
@@ -37,7 +37,8 @@ codes live in the `1600xx` block.
     "gql_mutation_assign_assets_perms": ["160005"],
     "gql_mutation_unassign_assets_perms": ["160006"],
     "gql_mutation_repair_assets_perms": ["160007"],
-    "gql_mutation_retire_assets_perms": ["160008"]
+    "gql_mutation_retire_assets_perms": ["160008"],
+    "gql_mutation_lose_assets_perms": ["160009"]
   }
 }
 ```
@@ -63,6 +64,7 @@ codes live in the `1600xx` block.
 | 160006 | Unassign asset                         |
 | 160007 | Mark for repair                        |
 | 160008 | Retire asset                           |
+| 160009 | Mark asset as lost                     |
 
 ## Module structure
 

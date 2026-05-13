@@ -18,6 +18,7 @@ from .gql_mutations import (
     CreateAssetMutation,
     DeleteAssetMutation,
     MarkAssetForRepairMutation,
+    MarkAssetLostMutation,
     RetireAssetMutation,
     UnassignAssetMutation,
     UpdateAssetMutation,
@@ -80,3 +81,4 @@ class Mutation(graphene.ObjectType):
     unassign_asset = UnassignAssetMutation.Field()
     mark_asset_for_repair = MarkAssetForRepairMutation.Field()
     retire_asset = RetireAssetMutation.Field()
+    mark_asset_lost = MarkAssetLostMutation.Field()

@@ -182,3 +182,22 @@ def retire_asset(*, user: User, asset: Asset, notes: str = ""):
     asset.status = retired
     asset.save(username=user.username)
     return []
+
+
+@transaction.atomic
+def mark_lost(*, user: User, asset: Asset, notes: str = ""):
+    lost = _status("lost")
+    if not lost:
+        return [{"message": _("asset.config.missing_status"),
+                 "detail": "AssetStatus 'lost' missing."}]
+
+    active = asset.assignment_history.filter(returned_date__isnull=True).first()
+    if active:
+        active.returned_date = timezone.now()
+        active.notes = f"Lost: {notes}".strip()
+        active.save(username=user.username)
+
+    asset.assigned_to = None
+    asset.status = lost
+    asset.save(username=user.username)
+    return []
