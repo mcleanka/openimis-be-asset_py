@@ -15,10 +15,7 @@ LOST_STATUS = {
 
 def _system_user(apps):
     User = apps.get_model(*settings.AUTH_USER_MODEL.split("."))
-    return (
-        User.objects.filter(is_superuser=True).first()
-        or User.objects.order_by("date_joined").first()
-    )
+    return User.objects.order_by("id").first()
 
 
 def seed_lost_status(apps, schema_editor):
