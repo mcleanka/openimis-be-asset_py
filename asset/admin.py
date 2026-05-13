@@ -18,11 +18,12 @@ class AssetStatusAdmin(admin.ModelAdmin):
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
     list_display = (
-        "name", "serial_number", "device_type", "status",
+        "name", "serial_number", "imei", "manufacturer", "model",
+        "os_version", "device_type", "status",
         "location", "assigned_to", "is_deleted",
     )
-    list_filter = ("status", "device_type", "location")
-    search_fields = ("name", "serial_number")
+    list_filter = ("status", "device_type", "location", "manufacturer")
+    search_fields = ("name", "serial_number", "imei", "manufacturer", "model")
 
 
 @admin.register(AssetAssignment)

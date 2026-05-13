@@ -46,6 +46,11 @@ class Asset(HistoryModel):
     name = models.CharField(max_length=200)
     serial_number = models.CharField(max_length=100, unique=True)
 
+    imei = models.CharField(max_length=20, blank=True, default="")
+    manufacturer = models.CharField(max_length=100, blank=True, default="")
+    model = models.CharField(max_length=100, blank=True, default="")
+    os_version = models.CharField(max_length=50, blank=True, default="")
+
     device_type = models.ForeignKey(
         DeviceType,
         on_delete=models.PROTECT,
