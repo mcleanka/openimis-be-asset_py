@@ -14,9 +14,7 @@ from .apps import AssetConfig
 from .models import Asset, AssetAssignment, AssetStatus, DeviceType
 
 
-# --------------------------------------------------------------------------- #
-# Lookups / defaults
-# --------------------------------------------------------------------------- #
+# Lookups / defaults / helpers
 def _status(code):
     return AssetStatus.objects.filter(
         code=code, is_deleted=False
@@ -34,9 +32,7 @@ def _default_device_type():
     ).first()
 
 
-# --------------------------------------------------------------------------- #
 # Validation
-# --------------------------------------------------------------------------- #
 def validate_assignment(asset: Asset, user: User):
     """Return list of error dicts; empty list = OK."""
     errors = []
@@ -50,7 +46,6 @@ def validate_assignment(asset: Asset, user: User):
 
     if AssetConfig.enforce_same_region_assignment:
         # core.User → InteractiveUser → location is configured per deployment.
-        # We assume an `i_user.location_id` or similar; adapt to your assembly.
         user_location = getattr(user, "location_id", None) or \
             getattr(getattr(user, "i_user", None), "location_id", None)
         if user_location and user_location != asset.location_id:
@@ -68,9 +63,7 @@ def validate_assignment(asset: Asset, user: User):
     return errors
 
 
-# --------------------------------------------------------------------------- #
 # CRUD-ish operations (called from gql_mutations)
-# --------------------------------------------------------------------------- #
 @transaction.atomic
 def create_asset(*, user: User, data: dict) -> Asset:
     if "device_type_id" not in data and "device_type" not in data:
