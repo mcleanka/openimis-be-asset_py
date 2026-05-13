@@ -175,3 +175,20 @@ class RetireAssetMutation(OpenIMISMutation):
             return [{"message": _("asset.validation.not_found")}]
         return services.retire_asset(
             user=user, asset=asset, notes=data.get("notes", "")) or []
+
+
+class MarkAssetLostMutation(OpenIMISMutation):
+    _mutation_module = "asset"
+    _mutation_class = "MarkAssetLostMutation"
+
+    class Input(AssetActionInputType):
+        pass
+
+    @classmethod
+    def async_mutate(cls, user, **data):
+        _check(user, AssetConfig.gql_mutation_lose_assets_perms)
+        asset = _get_asset(data["uuid"])
+        if not asset:
+            return [{"message": _("asset.validation.not_found")}]
+        return services.mark_lost(
+            user=user, asset=asset, notes=data.get("notes", "")) or []
