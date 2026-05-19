@@ -32,6 +32,8 @@ class AssetStatusGQLType(DjangoObjectType):
 
 
 class AssetGQLType(DjangoObjectType):
+    uuid = graphene.String(source='uuid')
+
     class Meta:
         model = Asset
         interfaces = (graphene.relay.Node,)
@@ -53,6 +55,7 @@ class AssetGQLType(DjangoObjectType):
 
 
 class AssetAssignmentGQLType(DjangoObjectType):
+    uuid = graphene.String(source='uuid')
     is_active = graphene.Boolean()
 
     class Meta:
