@@ -35,6 +35,21 @@ class AssetLifecycleTests(TestCase):
         )
         cls.assigned.save(username=cls.user.username)
 
+        cls.lost = AssetStatus(
+            code="lost", name="Lost", can_assign=False,
+        )
+        cls.lost.save(username=cls.user.username)
+
+        cls.repair = AssetStatus(
+            code="repair", name="Repair", can_assign=False,
+        )
+        cls.repair.save(username=cls.user.username)
+
+        cls.retired = AssetStatus(
+            code="retired", name="Retired", can_assign=False,
+        )
+        cls.retired.save(username=cls.user.username)
+
     def _make_asset(self, serial="TST-001"):
         return services.create_asset(user=self.user, data={
             "name": "iPhone 15",
@@ -96,3 +111,106 @@ class AssetLifecycleTests(TestCase):
             },
             f"unexpected errors: {errs}",
         )
+
+    # ---- Device details tests ----
+
+    def test_create_asset_with_device_details(self):
+        asset = services.create_asset(user=self.user, data={
+            "name": "Samsung Galaxy S24",
+            "serial_number": "TST-DEV-001",
+            "device_type": self.phone,
+            "status": self.available,
+            "location": self.location,
+            "imei": "123456789012345",
+            "manufacturer": "Samsung",
+            "model": "Galaxy S24",
+            "os_version": "Android 14",
+        })
+        self.assertEqual(asset.imei, "123456789012345")
+        self.assertEqual(asset.manufacturer, "Samsung")
+        self.assertEqual(asset.model, "Galaxy S24")
+        self.assertEqual(asset.os_version, "Android 14")
+
+    def test_create_asset_device_details_default_empty(self):
+        asset = self._make_asset(serial="TST-DEV-002")
+        self.assertEqual(asset.imei, "")
+        self.assertEqual(asset.manufacturer, "")
+        self.assertEqual(asset.model, "")
+        self.assertEqual(asset.os_version, "")
+
+    def test_update_asset_device_details(self):
+        asset = self._make_asset(serial="TST-DEV-003")
+        services.update_asset(user=self.user, asset=asset, data={
+            "imei": "999888777666555",
+            "manufacturer": "Apple",
+            "model": "iPhone 16",
+            "os_version": "iOS 18",
+        })
+        asset.refresh_from_db()
+        self.assertEqual(asset.imei, "999888777666555")
+        self.assertEqual(asset.manufacturer, "Apple")
+        self.assertEqual(asset.model, "iPhone 16")
+        self.assertEqual(asset.os_version, "iOS 18")
+
+    # ---- Lost status tests ----
+
+    def test_mark_lost_unassigned_asset(self):
+        asset = self._make_asset(serial="TST-LOST-001")
+        errs = services.mark_lost(user=self.user, asset=asset, notes="left on bus")
+        asset.refresh_from_db()
+        self.assertEqual(errs, [])
+        self.assertEqual(asset.status.code, "lost")
+        self.assertIsNone(asset.assigned_to_id)
+
+    def test_mark_lost_assigned_asset_closes_assignment(self):
+        asset = self._make_asset(serial="TST-LOST-002")
+        services.assign_asset(user=self.user, asset=asset, holder=self.user)
+        asset.refresh_from_db()
+        self.assertIsNotNone(asset.assigned_to_id)
+
+        errs = services.mark_lost(user=self.user, asset=asset, notes="stolen")
+        asset.refresh_from_db()
+        self.assertEqual(errs, [])
+        self.assertEqual(asset.status.code, "lost")
+        self.assertIsNone(asset.assigned_to_id)
+
+        active = asset.assignment_history.filter(returned_date__isnull=True)
+        self.assertFalse(active.exists())
+
+    # ---- Mark for repair tests ----
+
+    def test_mark_for_repair(self):
+        asset = self._make_asset(serial="TST-RPR-001")
+        errs = services.mark_for_repair(user=self.user, asset=asset, notes="cracked screen")
+        asset.refresh_from_db()
+        self.assertEqual(errs, [])
+        self.assertEqual(asset.status.code, "repair")
+        self.assertIsNone(asset.assigned_to_id)
+
+    # ---- Retire tests ----
+
+    def test_retire_asset(self):
+        asset = self._make_asset(serial="TST-RET-001")
+        errs = services.retire_asset(user=self.user, asset=asset, notes="end of life")
+        asset.refresh_from_db()
+        self.assertEqual(errs, [])
+        self.assertEqual(asset.status.code, "retired")
+        self.assertIsNone(asset.assigned_to_id)
+
+    # ---- Delete tests ----
+
+    def test_delete_asset(self):
+        asset = self._make_asset(serial="TST-DEL-001")
+        errs = services.delete_asset(user=self.user, asset=asset)
+        self.assertEqual(errs, [])
+        asset.refresh_from_db()
+        self.assertTrue(asset.is_deleted)
+
+    def test_delete_assigned_asset_blocked(self):
+        asset = self._make_asset(serial="TST-DEL-002")
+        services.assign_asset(user=self.user, asset=asset, holder=self.user)
+        asset.refresh_from_db()
+
+        errs = services.delete_asset(user=self.user, asset=asset)
+        self.assertTrue(errs)
+        self.assertEqual(errs[0]["message"], "asset.validation.delete_while_assigned")
